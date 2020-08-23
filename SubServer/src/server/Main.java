@@ -1,6 +1,11 @@
 package server;
 
+import java.rmi.server.RemoteObject;
 import javax.swing.JOptionPane;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 public class Main {
 
@@ -37,6 +42,24 @@ public class Main {
 			SubServerGUI ssg = new SubServerGUI();
 			logger = new Logger(ssg.getTextArea());
 		}
+		
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new SecurityManager());
+		}
+		
+		try {
+
+			//single object
+			Remote x = new Remote();
+			Remote stub = (Remote) UnicastRemoteObject.exportObject(x, 0);
+
+			Registry registry = LocateRegistry.createRegistry(4001);
+			registry.rebind("/x", stub);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }
