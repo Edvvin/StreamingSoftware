@@ -1,27 +1,18 @@
 package client;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.*;
+import javafx.scene.control.*;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -114,9 +105,47 @@ public class Main extends Application {
 		return stage;
 	}
 	
+	private Scene createRoomCreateScene() {
+		BorderPane border = new BorderPane();
+		VBox left = new VBox();
+		left.setAlignment(Pos.CENTER);
+		VBox right = new VBox();
+		right.setAlignment(Pos.CENTER);
+		SplitPane center = new SplitPane(left, right);
+
+		center.setDividerPosition(0, 0.5);
+		left.maxWidthProperty().bind(center.widthProperty().multiply(0.5));
+		right.maxWidthProperty().bind(center.widthProperty().multiply(0.5));
+		HBox bottom = new HBox();
+		bottom.setAlignment(Pos.CENTER);
+		border.setCenter(center);
+		border.setBottom(bottom);
+		
+		Button back = new Button("Back");
+		Button createRoom = new Button("Create Room");
+		Button watchAlone = new Button("Watch Alone");
+		bottom.getChildren().addAll(back, watchAlone, createRoom);
+		
+		Label movieLabel = new Label("Choose Movie: ");
+		movieLabel.setFont(new Font(18));
+		ChoiceBox<String> movieChoice = new ChoiceBox<>();
+		left.getChildren().add(movieLabel);
+		left.getChildren().add(movieChoice);
+		Label roomLabel = new Label("Choose your buddies: ");
+		roomLabel.setFont(new Font(18));
+		ChoiceBox<String> roomChoice = new ChoiceBox<>();
+        //ObservableList<CheckBox> items = FXCollections.observableArrayList( new CheckBox(), new CheckBox());
+        ListView<CheckBox> buddyList = new ListView<>();
+
+		right.getChildren().add(roomLabel);
+		right.getChildren().add(buddyList);
+		
+		return new Scene(border, 800, 600);
+	}
+	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		Scene scene = createChoiceScene();
+		Scene scene = createRoomCreateScene();
 		Stage secst = createNotificationStage();
 		secst.show();
 		primaryStage.setScene(scene);
