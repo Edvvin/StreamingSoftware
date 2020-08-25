@@ -19,6 +19,12 @@ public class Main extends Application {
 	
 	static Stage notificationStage;
 	static Stage primaryStage;
+	
+	private static TextField log_uname;
+	private static TextField reg_uname;
+	private static TextField log_pass;
+	private static TextField reg_pass;
+	private static ChoiceBox<String> movieChoice;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -32,7 +38,7 @@ public class Main extends Application {
 		Label log_label = new Label("Login");
 		log_label.setFont(new Font(22));
 		Label log_uname_label = new Label("Username: ");
-		TextField log_uname = new TextField();
+		log_uname = new TextField();
 		log_uname.setMaxWidth(250);
 		Label log_pass_label = new Label("Password: ");
 		PasswordField log_pass = new PasswordField();
@@ -45,10 +51,10 @@ public class Main extends Application {
 		Label reg_label = new Label("Register");
 		reg_label.setFont(new Font(22));
 		Label reg_uname_label = new Label("Username: ");
-		TextField reg_uname = new TextField();
+		reg_uname = new TextField();
 		reg_uname.setMaxWidth(250);
 		Label reg_pass_label = new Label("Password: ");
-		TextField reg_pass = new TextField();
+		reg_pass = new TextField();
 		reg_pass.setMaxWidth(250);
 		register.getChildren().add(reg_label);
 		register.getChildren().add(reg_uname_label);
@@ -184,7 +190,7 @@ public class Main extends Application {
 		
 		Label movieLabel = new Label("Choose Movie: ");
 		movieLabel.setFont(new Font(18));
-		ChoiceBox<String> movieChoice = new ChoiceBox<>();
+		movieChoice = new ChoiceBox<>();
 		left.getChildren().add(movieLabel);
 		left.getChildren().add(movieChoice);
 		Label roomLabel = new Label("Choose your buddies: ");

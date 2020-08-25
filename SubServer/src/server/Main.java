@@ -50,11 +50,11 @@ public class Main {
 		try {
 
 			//single object
-			Remote x = new Remote();
-			Remote stub = (Remote) UnicastRemoteObject.exportObject(x, 0);
+			SSRemote rmi = new SubServerRMI();
+			SSRemote stub = (SSRemote) UnicastRemoteObject.exportObject(rmi, 0);
 
-			Registry registry = LocateRegistry.createRegistry(4001);
-			registry.rebind("/x", stub);
+			Registry registry = LocateRegistry.createRegistry(4002);
+			registry.rebind("/ssrmi", stub);
 
 		} catch (RemoteException e) {
 			e.printStackTrace();

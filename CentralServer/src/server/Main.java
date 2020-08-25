@@ -1,4 +1,9 @@
 package server;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
 import javax.swing.*;
 
 public class Main {
@@ -35,11 +40,11 @@ public class Main {
 		try {
 
 			//single object
-			Remote x = new Remote();
-			Remote stub = (Remote) UnicastRemoteObject.exportObject(x, 0);
+			CSRemote rmi = new CentralServerRMI();
+			CSRemote stub = (CSRemote) UnicastRemoteObject.exportObject(rmi, 0);
 
 			Registry registry = LocateRegistry.createRegistry(4001);
-			registry.rebind("/x", stub);
+			registry.rebind("/csrmi", stub);
 
 		} catch (RemoteException e) {
 			e.printStackTrace();
