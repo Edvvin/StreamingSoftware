@@ -16,6 +16,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+	
+	static Stage notificationStage;
+	static Stage primaryStage;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -56,6 +59,20 @@ public class Main extends Application {
 		Button reg_btn = new Button("Register");
 		login.getChildren().add(log_btn);
 		register.getChildren().add(reg_btn);
+		log_btn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// LOGIN HANDLE
+				primaryStage.setScene(createChoiceScene());
+			}
+		});
+
+		reg_btn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// REGISTER HANDLE
+			}
+		});
 		
 		return new Scene(split, 800, 600);
 	}
@@ -70,6 +87,26 @@ public class Main extends Application {
 		upload.setPadding(new Insets(20));
 		watch.setPadding(new Insets(20));
 		logout.setPadding(new Insets(20));
+		upload.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// UPLOAD HANDLE
+			}
+		});
+		watch.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// WATCH HANDLE
+				primaryStage.setScene(createRoomCreateScene());
+			}
+		});
+		logout.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// LOGOUT HANDLE
+				primaryStage.setScene(createLogRegScene());
+			}
+		});
 		choices.getChildren().add(upload);
 		choices.getChildren().add(watch);
 		choices.getChildren().add(logout);
@@ -122,8 +159,27 @@ public class Main extends Application {
 		border.setBottom(bottom);
 		
 		Button back = new Button("Back");
+		back.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// BACK HANDLE
+				primaryStage.setScene(createChoiceScene());
+			}
+		});
 		Button createRoom = new Button("Create Room");
+		createRoom.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// ROOM HANDLE
+			}
+		});
 		Button watchAlone = new Button("Watch Alone");
+		watchAlone.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// ALONE HANDLE
+			}
+		});
 		bottom.getChildren().addAll(back, watchAlone, createRoom);
 		
 		Label movieLabel = new Label("Choose Movie: ");
@@ -133,9 +189,8 @@ public class Main extends Application {
 		left.getChildren().add(movieChoice);
 		Label roomLabel = new Label("Choose your buddies: ");
 		roomLabel.setFont(new Font(18));
-		ChoiceBox<String> roomChoice = new ChoiceBox<>();
-        //ObservableList<CheckBox> items = FXCollections.observableArrayList( new CheckBox(), new CheckBox());
-        ListView<CheckBox> buddyList = new ListView<>();
+        ObservableList<Buddy> items = FXCollections.observableArrayList(new Buddy("Edo"), new Buddy("Emi"));
+        ListView<Buddy> buddyList = new ListView<>(items);
 
 		right.getChildren().add(roomLabel);
 		right.getChildren().add(buddyList);
@@ -145,10 +200,8 @@ public class Main extends Application {
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		Scene scene = createRoomCreateScene();
-		Stage secst = createNotificationStage();
-		secst.show();
-		primaryStage.setScene(scene);
+		Main.primaryStage = primaryStage;
+		primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
 
