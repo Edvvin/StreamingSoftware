@@ -1,5 +1,10 @@
 package client;
 
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,22 +19,34 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import server.CSRemote;
+import server.SSRemote;
 
 public class Main extends Application {
 	
+	static CSRemote csrmi;
+	static SSRemote ssrmi;
+	public static final int CS_PORT = 4005;
+	public static final int SS_PORT = 4002;
+
 	static Stage notificationStage;
 	static Stage primaryStage;
-	
 	private static TextField log_uname;
 	private static TextField reg_uname;
 	private static TextField log_pass;
 	private static TextField reg_pass;
 	private static ChoiceBox<String> movieChoice;
+	private static TextField hostTF;
+	private static String host = "localhost";
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
 		VBox register = new VBox();
 		SplitPane split = new SplitPane(login, register);
+		VBox south = new VBox();
+		BorderPane mainPane = new BorderPane();
+		mainPane.setCenter(split);
+		mainPane.setBottom(south);
 		login.maxWidthProperty().bind(split.widthProperty().multiply(0.5));
 		login.setAlignment(Pos.CENTER);
 		register.maxWidthProperty().bind(split.widthProperty().multiply(0.5));
@@ -69,7 +86,20 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// LOGIN HANDLE
-				primaryStage.setScene(createChoiceScene());
+				host = hostTF.getText();
+				if (System.getSecurityManager() == null) {
+					System.setSecurityManager(new SecurityManager());
+				}
+
+				try {
+					Registry regCS = LocateRegistry.getRegistry(host, CS_PORT);
+
+					csrmi = (CSRemote) regCS.lookup("/csrmi");
+					System.out.print(csrmi.login("fds", "fdas"));
+				} catch (RemoteException err) {
+					System.out.print(err.getMessage());
+				}
+				
 			}
 		});
 
@@ -80,7 +110,13 @@ public class Main extends Application {
 			}
 		});
 		
-		return new Scene(split, 800, 600);
+		Label hostLabel = new Label("Host:");
+		hostTF = new TextField();
+		hostTF.setText(host);
+		hostTF.setMaxWidth(250);
+		south.getChildren().addAll(hostLabel, hostTF);
+		south.setAlignment(Pos.CENTER);
+		return new Scene(mainPane, 800, 600);
 	}
 	
 	private Scene createChoiceScene() {

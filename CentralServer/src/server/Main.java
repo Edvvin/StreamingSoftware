@@ -1,15 +1,21 @@
 package server;
+import java.net.ServerSocket;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 
 import javax.swing.*;
 
 public class Main {
 
+	public static final int CS_PORT = 4000;
 	public static boolean nogui;
 	public static Logger logger;
+	
+	public static HashMap<String,SSRemote> ssMap = new HashMap<String,SSRemote>();
+	public static HashMap<String,String> userMap = new HashMap<String,String>();
 
 	public static void main(String[] args) {
 		boolean nogui = false;
@@ -38,13 +44,11 @@ public class Main {
 		}
 		
 		try {
-
 			//single object
 			CSRemote rmi = new CentralServerRMI();
-			CSRemote stub = (CSRemote) UnicastRemoteObject.exportObject(rmi, 0);
 
-			Registry registry = LocateRegistry.createRegistry(4001);
-			registry.rebind("/csrmi", stub);
+			Registry registry = LocateRegistry.createRegistry(CS_PORT);
+			registry.rebind("/csrmi", rmi);
 
 		} catch (RemoteException e) {
 			e.printStackTrace();

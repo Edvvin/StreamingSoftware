@@ -1,7 +1,12 @@
 package server;
 
 import java.rmi.server.RemoteObject;
-import javax.swing.JOptionPane;
+import javax.swing.JFileChooser;
+import javax.swing.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -11,6 +16,8 @@ public class Main {
 
 	public static boolean nogui = false;
 	public static Logger logger = null;
+	public static int ssport;
+	public static String dir = "";
 	public static void main(String[] args) {
 		String host = "", port = "";
 		for(int i=0; i < args.length; i++) {
@@ -22,6 +29,9 @@ public class Main {
 			}
 			else if(args[i].equals("port")) {
 				port = args[++i];
+			}
+			else if(args[i].equals("dir")) {
+				dir = args[++i];
 			}
 		}
 		
@@ -40,6 +50,15 @@ public class Main {
 					port = JOptionPane.showInputDialog("Port: ");
 			}
 			SubServerGUI ssg = new SubServerGUI();
+			while(dir.isEmpty()) {
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int option = fileChooser.showOpenDialog(ssg);
+				if(option == JFileChooser.APPROVE_OPTION){
+				   File file = fileChooser.getSelectedFile();
+				   dir = file.getPath();
+				}
+			}
 			logger = new Logger(ssg.getTextArea());
 		}
 		
@@ -49,14 +68,19 @@ public class Main {
 		
 		try {
 
+			ServerSocket ss = new ServerSocket(0);
+			ssport = ss.getLocalPort();
+			ssport = 4009; //TODO commentout
+			ss.close();
 			//single object
 			SSRemote rmi = new SubServerRMI();
-			SSRemote stub = (SSRemote) UnicastRemoteObject.exportObject(rmi, 0);
-
-			Registry registry = LocateRegistry.createRegistry(4002);
-			registry.rebind("/ssrmi", stub);
+			Registry registry = LocateRegistry.createRegistry(ssport);
+			registry.rebind("/ssrmi", rmi);
+			Main.logger.log("Created RMI on port: " + ssport);
 
 		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
