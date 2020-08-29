@@ -2,6 +2,10 @@ package server;
 
 import java.rmi.server.RemoteObject;
 import javax.swing.JFileChooser;
+
+import inner.Subserver;
+import my.rmi.SSRemote;
+
 import javax.swing.*;
 
 import java.io.File;
@@ -16,9 +20,9 @@ public class Main {
 
 	public static boolean nogui = false;
 	public static Logger logger = null;
-	public static int ssport;
-	public static String dir = "";
+	public static Subserver ss;
 	public static void main(String[] args) {
+		String dir = "";
 		String host = "", port = "";
 		for(int i=0; i < args.length; i++) {
 			if(args[i].equals("nogui")) {
@@ -68,14 +72,14 @@ public class Main {
 		
 		try {
 
-			ServerSocket ss = new ServerSocket(0);
-			ssport = ss.getLocalPort();
-			ssport = 4009; //TODO commentout
-			ss.close();
+			ServerSocket socket = new ServerSocket(0);
+			int ssport = socket.getLocalPort();
+			socket.close();
 			//single object
 			SSRemote rmi = new SubServerRMI();
 			Registry registry = LocateRegistry.createRegistry(ssport);
 			registry.rebind("/ssrmi", rmi);
+			ss = new Subserver(ssport, dir);
 			Main.logger.log("Created RMI on port: " + ssport);
 
 		} catch (RemoteException e) {

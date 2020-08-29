@@ -23,9 +23,24 @@ public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 		}
 		return ssid;
 	}
-	
-	public Chunk getChunk() {
+
+	@Override
+	public Chunk getChunk() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void movieUpdate() throws RemoteException {
+		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public boolean upload(String name, Byte[] bytes, boolean done) throws RemoteException {
+		// TODO Auto-generated method stub
+		return true;
+	}
+	
 
 }
