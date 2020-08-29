@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import my.rmi.*;
 
 public class Subserver {
-	String host;
-	int port;
-	SSRemote ss;
-	boolean isRegistered;
-	ArrayList<User> users;
+	private String host;
+	private int port;
+	private SSRemote ss;
+	private boolean isRegistered;
+	private ArrayList<User> users;
 	
 	public Subserver(String host, int port, SSRemote ss) {
 		this.host = host;
@@ -48,6 +48,14 @@ public class Subserver {
 	
 	public synchronized boolean isRegistered() {
 		return isRegistered;
+	}
+	
+	public String getHost() {
+		return host;
+	}
+	
+	public int getPort() {
+		return port;
 	}
 	
 	

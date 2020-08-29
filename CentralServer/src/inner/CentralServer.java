@@ -5,6 +5,7 @@ import java.util.*;
 
 public class CentralServer {
 
+	public static final int ORDER_COUNT = 3;
 	ArrayList<Subserver> subs;
 	Users users;
 	HashMap<String, ArrayList<Subserver>> chunks;
@@ -45,6 +46,7 @@ public class CentralServer {
 	
 	public synchronized void removeSubserver(Subserver ss) {
 		//TODO
+		// remove from list, reroute users, remove chunks, reroute notifications
 		ArrayList<User> users = ss.strip();
 		subs.remove(ss);
 		for(User u: users) {
@@ -55,6 +57,28 @@ public class CentralServer {
 	
 	public synchronized Users getUsers() {
 		return (Users) users.clone();
+	}
+	
+	public synchronized ArrayList<Order> getOrders(Subserver ss){
+		ArrayList<Order> orders = new ArrayList<>();
+		Random r = new Random();
+		chunks.forEach((key,value) -> {
+			if(!value.contains(ss)) {
+				Subserver orderSS = value.get(r.nextInt(value.size()));
+				String[] parts = key.split(":");
+				orders.add(
+						new Order(orderSS.getHost(), orderSS.getPort(),
+								parts[0], Integer.parseInt(parts[1]))
+						);
+			}
+		});
+		ArrayList<Order> randomOrders = new ArrayList<>();
+		for(int i = 0; i<ORDER_COUNT; i++) {
+			Order temp = orders.get(r.nextInt(orders.size()));
+			randomOrders.add(temp);
+			orders.remove(temp);
+		}
+		return randomOrders;
 	}
 
 }
