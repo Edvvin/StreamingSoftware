@@ -37,8 +37,8 @@ public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 	}
 
 	@Override
-	public boolean upload(String name, Byte[] bytes, boolean done) throws RemoteException {
-		// TODO Auto-generated method stub
+	public boolean upload(String name, Chunk chunk, boolean newFile, boolean done) throws RemoteException {
+		Main.ss.upload(name, chunk, newFile, done);
 		return true;
 	}
 	

@@ -3,6 +3,7 @@ package inner;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,9 +17,11 @@ import my.rmi.*;
 
 public class Subserver {
 	HashMap<String, Movie> movies;
+	String dir;
 	
 	public Subserver(int port, String dir) {
 		movies = new HashMap<>();
+		this.dir = dir;
 		Path indexPath = Path.of(dir, "index.txt");
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(indexPath.toFile()));
@@ -41,11 +44,26 @@ public class Subserver {
 			
 		} catch (IOException e) {
 			try {
-				new FileWriter(indexPath.toFile()).close();
+				indexPath.toFile().createNewFile();
 			} catch (IOException e1) {
-				System.out.print(e1.getLocalizedMessage());
+				e1.printStackTrace();
 			}
 		}
 
+	}
+	
+	public boolean upload(String name, Chunk chunk, boolean newFile, boolean done) {
+		Path filePath = Path.of(dir, name);
+		try(FileOutputStream fs = new FileOutputStream(filePath.toFile(), newFile)) {
+			fs.write(chunk.getBytes());
+			if(done) {
+				//TODO
+			}
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
 	}
 }
