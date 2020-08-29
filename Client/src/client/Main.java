@@ -14,13 +14,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import server.CSRemote;
-import server.SSRemote;
+import my.rmi.*;
 
 public class Main extends Application {
 	
@@ -95,11 +95,31 @@ public class Main extends Application {
 					Registry regCS = LocateRegistry.getRegistry(host, CS_PORT);
 
 					csrmi = (CSRemote) regCS.lookup("/csrmi");
-					System.out.print(csrmi.login("fds", "fdas"));
-				} catch (RemoteException err) {
+					String reply = csrmi.login(log_uname.getText(), log_pass.getText());
+					if(!reply.equals("INVALID") && !reply.equals("FAILED")) {
+						primaryStage.setScene(createChoiceScene());
+					}
+					else {
+						if(reply.equals("INVALID")) {
+							Alert alert = new Alert(AlertType.ERROR);
+							alert.setHeaderText("Log In Failed");
+							alert.setContentText("Wrong username or password");
+							alert.show();
+						}
+						else {
+							Alert alert = new Alert(AlertType.ERROR);
+							alert.setHeaderText("Log In Failed");
+							alert.setContentText("Server error");
+							alert.show();
+						}
+					}
+				} catch (RemoteException | NotBoundException err) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("Log In Failed");
+					alert.setContentText("Server error");
+					alert.show();
 					System.out.print(err.getMessage());
 				}
-				
 			}
 		});
 
@@ -107,6 +127,33 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// REGISTER HANDLE
+				
+				host = hostTF.getText();
+				if (System.getSecurityManager() == null) {
+					System.setSecurityManager(new SecurityManager());
+				}
+
+				try {
+					Registry regCS = LocateRegistry.getRegistry(host, CS_PORT);
+
+					csrmi = (CSRemote) regCS.lookup("/csrmi");
+					boolean reply = csrmi.register(log_uname.getText(), log_pass.getText());
+					if(reply) {
+						primaryStage.setScene(createChoiceScene());
+					}
+					else {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setHeaderText("Registration Failed");
+						alert.setContentText("Server error");
+						alert.show();
+					}
+				} catch (RemoteException | NotBoundException err) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("Registration Failed");
+					alert.setContentText("Server error");
+					alert.show();
+					System.out.print(err.getMessage());
+				}
 			}
 		});
 		
@@ -155,12 +202,12 @@ public class Main extends Application {
 		return new Scene(choices,800,600);
 	}
 	
-	private Scene createLoadingScene() {
+	private Scene createTextScene(String text) {
 		HBox box = new HBox();
 		box.setAlignment(Pos.CENTER);
-		Label text = new Label("Please Wait...");
-		text.setFont(new Font(25));
-		box.getChildren().add(text);
+		Label label = new Label(text);
+		label.setFont(new Font(25));
+		box.getChildren().add(label);
 
 		return new Scene(box,800,600);
 	}

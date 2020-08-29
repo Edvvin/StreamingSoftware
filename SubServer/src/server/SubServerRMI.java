@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
+import my.rmi.*;
 
 public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 	
@@ -21,6 +22,10 @@ public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 			e.printStackTrace();
 		}
 		return ssid;
+	}
+	
+	public Chunk getChunk() {
+		
 	}
 
 }

@@ -4,18 +4,23 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.*;
+
+import inner.CentralServer;
+import inner.Subserver;
+import my.rmi.CSRemote;
+import my.rmi.Users;
 
 public class Main {
 
 	public static final int CS_PORT = 4000;
 	public static boolean nogui;
 	public static Logger logger;
+	static CentralServer cs;
 	
-	public static HashMap<String,SSRemote> ssMap = new HashMap<String,SSRemote>();
-	public static HashMap<String,String> userMap = new HashMap<String,String>();
 
 	public static void main(String[] args) {
 		boolean nogui = false;
@@ -45,8 +50,8 @@ public class Main {
 		
 		try {
 			//single object
+			cs = new CentralServer();
 			CSRemote rmi = new CentralServerRMI();
-
 			Registry registry = LocateRegistry.createRegistry(CS_PORT);
 			registry.rebind("/csrmi", rmi);
 
