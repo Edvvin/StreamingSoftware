@@ -79,9 +79,9 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public boolean newMovie(int port, String name, long numOfChunks) throws RemoteException {
+	public boolean newMovie(int port, String name, long fileSize) throws RemoteException {
 		try {
-			return Main.cs.newMovie(RemoteServer.getClientHost(), port, name, numOfChunks);
+			return Main.cs.newMovie(RemoteServer.getClientHost(), port, name, fileSize);
 		} catch (ServerNotActiveException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

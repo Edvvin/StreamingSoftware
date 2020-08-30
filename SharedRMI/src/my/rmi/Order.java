@@ -5,12 +5,14 @@ import java.io.Serializable;
 public class Order implements Serializable{
 	String host, movie;
 	int chunkIndex, port;
+	long fileSize;
 	
-	public Order(String host, int port, String movie, int chunkIndex) {
+	public Order(String host, int port, String movie, int chunkIndex, long fileSize) {
 		this.host = host;
 		this.port = port;
 		this.movie = movie;
 		this.chunkIndex = chunkIndex;
+		this.fileSize = fileSize;
 	}
 	
 	public String getHost() {
@@ -27,5 +29,9 @@ public class Order implements Serializable{
 
 	public int getIndex() {
 		return chunkIndex;
+	}
+	
+	public long getFileSize() {
+		return fileSize;
 	}
 }

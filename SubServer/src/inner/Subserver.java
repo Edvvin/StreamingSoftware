@@ -38,16 +38,20 @@ public class Subserver {
 			lines.forEachRemaining(line -> {
 					String parts[] = line.split(":");
 					String movieName = parts[0];
-					int chunkNum = Integer.parseInt(parts[1]);
-					Movie m;
-					if(movies.containsKey(movieName)) {
-						m = movies.get(movieName);
+					Path filePath = Path.of(dir, movieName);
+					if(filePath.toFile().exists()) {
+						int chunkNum = Integer.parseInt(parts[1]);
+						Movie m;
+						if(movies.containsKey(movieName)) {
+							m = movies.get(movieName);
+						}
+						else {
+							m = new Movie(movieName,
+									filePath.toFile().getTotalSpace());
+							movies.put(movieName, m);
+						}
+						m.addChunk(chunkNum);
 					}
-					else {
-						m = new Movie(movieName);
-						movies.put(movieName, m);
-					}
-					m.addChunk(chunkNum);
 				}
 			);
 			
@@ -78,7 +82,7 @@ public class Subserver {
 		else {
 			numOfChunks = size / Chunk.CHUNK_SIZE + 1;
 		}
-		Movie m = new Movie(name);
+		Movie m = new Movie(name, filePath.toFile().getTotalSpace());
 		for(int i = 0; i < numOfChunks; i++)
 			m.addChunk(i);
 		movies.put(name, m);
@@ -97,7 +101,7 @@ public class Subserver {
 			e.printStackTrace(); //TODO
 		}
 		try {
-			csrmi.newMovie(port, name, numOfChunks);
+			csrmi.newMovie(port, name, filePath.toFile().getTotalSpace());
 		} catch (RemoteException e) {
 			// TODO 
 			e.printStackTrace();
@@ -145,5 +149,51 @@ public class Subserver {
 	
 	public void wakeElf() {
 		elf.start();
+	}
+
+	public void carryOut(Order o) {
+		Path filePath = Path.of(dir, o.getMovie());
+		File file = filePath.toFile();
+		boolean newFile = false;
+		if(!file.exists()) {
+			try {
+				newFile = true;
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		try(RandomAccessFile f = new RandomAccessFile(file, "rws")){
+			if(newFile)
+				f.setLength(o.getFileSize());
+			Registry regSS = LocateRegistry.getRegistry(o.getHost(), o.getPort());
+			SSRemote ssrmi = (SSRemote) regSS.lookup("/ssrmi");
+			Chunk c = ssrmi.download(o.getMovie(), o.getIndex());
+		}
+		catch(IOException e) {
+			
+		} catch (NotBoundException e) {
+			// TODO do this
+			e.printStackTrace();
+		}
+	}
+
+	public Chunk download(String name, int chunkIndex) {
+		if(!movies.containsKey(name))
+			return null;
+		Path filePath = Path.of(dir, name);
+		Chunk c = null;
+		try(RandomAccessFile f = new RandomAccessFile(filePath.toFile(), "r")){
+			c = new Chunk(chunkIndex);
+			int mylen = f.read(c.getBytes(), chunkIndex*Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE);
+			c.pack(mylen);
+		}catch(RemoteException e1){
+			 //TODO
+			e1.printStackTrace();
+		}
+		catch(IOException e2) {
+			e2.printStackTrace();
+		}
+		return c;
 	}
 }

@@ -30,12 +30,6 @@ public class SubServerRMI implements SSRemote {
 	}
 
 	@Override
-	public Chunk getChunk() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void newMovie() throws RemoteException {
 		//movieElf.newMovie();
 	}
@@ -53,6 +47,11 @@ public class SubServerRMI implements SSRemote {
 	@Override
 	public void newUser(String username, String password) {
 		Main.ss.newUser(username, password);
+	}
+
+	@Override
+	public Chunk download(String name, int chunkIndex) throws RemoteException {
+		return Main.ss.download(name, chunkIndex);
 	}
 	
 

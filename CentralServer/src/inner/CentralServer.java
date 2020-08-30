@@ -12,12 +12,14 @@ public class CentralServer {
 	ArrayList<Subserver> subs;
 	Users users;
 	HashMap<String, ArrayList<Subserver>> chunks;
+	HashMap<String, Long> fileSizes;
 	int port;
 
 	public CentralServer(int port) {
 		subs = new ArrayList<>();
 		users = new Users();
 		chunks = new HashMap<>();
+		fileSizes = new HashMap<>();
 		this.port = port;
 	}
 	
@@ -33,6 +35,7 @@ public class CentralServer {
 					ArrayList<Subserver> tempsubs = new ArrayList<>(); 
 					tempsubs.add(ss);
 					chunks.put(chid,tempsubs);
+					fileSizes.putIfAbsent(m.getName(), m.getSize());
 				}
 			}
 		}
@@ -103,7 +106,7 @@ public class CentralServer {
 						String[] parts = key.split(":");
 						orders.add(
 								new Order(orderSS.getHost(), orderSS.getPort(),
-										parts[0], Integer.parseInt(parts[1]))
+										parts[0], Integer.parseInt(parts[1]), fileSizes.get(parts[0]))
 								);
 					}
 				});
@@ -134,7 +137,8 @@ public class CentralServer {
 				}
 			}
 		}
-			
+		if(orders.size() == 0)	
+			return orders;
 		ArrayList<Order> randomOrders = new ArrayList<>();
 		for(int i = 0; i<Consts.ORDER_COUNT; i++) {
 			Order temp = orders.get(r.nextInt(orders.size()));
@@ -144,7 +148,14 @@ public class CentralServer {
 		return randomOrders;
 	}
 
-	public synchronized boolean newMovie(String sshost, int ssport, String name, long numOfChunks) {
+	public synchronized boolean newMovie(String sshost, int ssport, String name, long fileSize) {
+		long numOfChunks;
+		if(fileSize % Chunk.CHUNK_SIZE == 0) {
+			numOfChunks = fileSize / Chunk.CHUNK_SIZE;
+		}
+		else {
+			numOfChunks = fileSize / Chunk.CHUNK_SIZE + 1;
+		}
 		for(Subserver ss: subs) {
 			if(ss.getHost().equals(sshost) && ss.getPort() == ssport) {
 				for(int i=0;i<numOfChunks; i++) {
@@ -157,6 +168,7 @@ public class CentralServer {
 					ArrayList<Subserver> templist = new ArrayList<>();
 					templist.add(ss);
 					chunks.put(chid,templist);
+					fileSizes.putIfAbsent(name, fileSize);
 				}
 				for(Subserver s: subs) {
 					try {
