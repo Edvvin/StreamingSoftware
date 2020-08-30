@@ -17,10 +17,11 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Main {
-
 	public static boolean nogui = false;
 	public static Logger logger = null;
 	public static Subserver ss;
+	public static SubServerRMI myRMI;
+
 	public static void main(String[] args) {
 		String dir = "";
 		String host = "", port = "";
@@ -75,12 +76,13 @@ public class Main {
 			int ssport = socket.getLocalPort();
 			socket.close();
 			//single object
-			SSRemote rmi = new SubServerRMI();
+			myRMI = new SubServerRMI();
+			SSRemote rmi = (SSRemote)UnicastRemoteObject.exportObject(myRMI, 0);  
 			Registry registry = LocateRegistry.createRegistry(ssport);
 			registry.rebind("/ssrmi", rmi);
-			ss = new Subserver(ssport, dir);
 			Main.logger.log("Created RMI on port: " + ssport);
-
+			ss = new Subserver(ssport, dir, host, Integer.parseInt(port));
+			ss.connect();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

@@ -1,19 +1,24 @@
 package inner;
 
 import my.rmi.*;
+
+import java.rmi.RemoteException;
 import java.util.*;
+import my.utils.*;
+import server.CentralServerRMI;
 
 public class CentralServer {
 
-	public static final int ORDER_COUNT = 3;
 	ArrayList<Subserver> subs;
 	Users users;
 	HashMap<String, ArrayList<Subserver>> chunks;
+	int port;
 
-	public CentralServer() {
+	public CentralServer(int port) {
 		subs = new ArrayList<>();
 		users = new Users();
 		chunks = new HashMap<>();
+		this.port = port;
 	}
 	
 	public synchronized void registerSubserver(Subserver ss) {
@@ -33,7 +38,12 @@ public class CentralServer {
 			best.addUser(user);
 		}
 		for(Subserver ss: subs) {
-			ss.getRMI().newUser(user);
+			try {
+				ss.getRMI().newUser(user.getUsername(), user.getPassword());
+			} catch (RemoteException e) {
+				// TODO no connection
+				e.printStackTrace();
+			}
 		}
 		return best;
 	}
@@ -76,12 +86,13 @@ public class CentralServer {
 			}
 		});
 		ArrayList<Order> randomOrders = new ArrayList<>();
-		for(int i = 0; i<ORDER_COUNT; i++) {
+		for(int i = 0; i<Consts.ORDER_COUNT; i++) {
 			Order temp = orders.get(r.nextInt(orders.size()));
 			randomOrders.add(temp);
 			orders.remove(temp);
 		}
 		return randomOrders;
 	}
+	
 
 }

@@ -1,4 +1,5 @@
 package server;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.*;
-
+import my.utils.*;
 import inner.CentralServer;
 import inner.Subserver;
 import my.rmi.CSRemote;
@@ -16,10 +17,10 @@ import my.rmi.Users;
 
 public class Main {
 
-	public static final int CS_PORT = 4000;
 	public static boolean nogui;
 	public static Logger logger;
 	static CentralServer cs;
+	static CentralServerRMI myRMI;
 	
 
 	public static void main(String[] args) {
@@ -50,13 +51,21 @@ public class Main {
 		
 		try {
 			//single object
-			cs = new CentralServer();
-			CSRemote rmi = new CentralServerRMI();
-			Registry registry = LocateRegistry.createRegistry(CS_PORT);
+			ServerSocket ss = new ServerSocket(0);
+			int port = ss.getLocalPort();
+			ss.close();
+			myRMI = new CentralServerRMI();
+			CSRemote rmi = (CSRemote) UnicastRemoteObject.exportObject(myRMI, 0);
+			Registry registry = LocateRegistry.createRegistry(port);
 			registry.rebind("/csrmi", rmi);
-
+			cs = new CentralServer(port);
+			logger.log("Created regsitry on port: " + port);
 		} catch (RemoteException e) {
 			e.printStackTrace();
+			//TODO
+		}
+		catch(IOException e) {
+			
 		}
 		
 	}

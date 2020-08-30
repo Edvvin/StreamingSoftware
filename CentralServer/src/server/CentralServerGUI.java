@@ -12,8 +12,16 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 import javax.swing.*;
+
+import my.rmi.CSRemote;
+import my.utils.Consts;
 
 public class CentralServerGUI extends JFrame {
 	
@@ -42,7 +50,7 @@ public class CentralServerGUI extends JFrame {
 		
 		addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosed(WindowEvent e) {
+			public void windowClosing(WindowEvent e) {
 				dispose();
 			}
 		});

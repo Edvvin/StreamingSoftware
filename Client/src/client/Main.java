@@ -1,36 +1,27 @@
 package client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
+import java.io.*;
+import java.rmi.*;
+import java.rmi.registry.*;
+import my.utils.*;
 
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.application.*;
+import javafx.collections.*;
+import javafx.event.*;
+import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.scene.text.*;
+import javafx.stage.*;
 import my.rmi.*;
 
 public class Main extends Application {
 	
 	static CSRemote csrmi;
 	static SSRemote ssrmi;
-	public static final int CS_PORT = 4005;
-	public static final int SS_PORT = 4002;
 
 	static Stage notificationStage;
 	static Stage primaryStage;
@@ -40,7 +31,9 @@ public class Main extends Application {
 	private static TextField reg_pass;
 	private static ChoiceBox<String> movieChoice;
 	private static TextField hostTF;
+	private static TextField portTF;
 	private static String host = "localhost";
+	private static int port = 1234;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -61,7 +54,7 @@ public class Main extends Application {
 		log_uname = new TextField();
 		log_uname.setMaxWidth(250);
 		Label log_pass_label = new Label("Password: ");
-		PasswordField log_pass = new PasswordField();
+		log_pass = new PasswordField();
 		log_pass.setMaxWidth(250);
 		login.getChildren().add(log_label);
 		login.getChildren().add(log_uname_label);
@@ -90,12 +83,13 @@ public class Main extends Application {
 			public void handle(ActionEvent e) {
 				// LOGIN HANDLE
 				host = hostTF.getText();
+				port = Integer.parseInt(portTF.getText());
 				if (System.getSecurityManager() == null) {
 					System.setSecurityManager(new SecurityManager());
 				}
 
 				try {
-					Registry regCS = LocateRegistry.getRegistry(host, CS_PORT);
+					Registry regCS = LocateRegistry.getRegistry(host, port);
 
 					csrmi = (CSRemote) regCS.lookup("/csrmi");
 					String reply = csrmi.login(log_uname.getText(), log_pass.getText());
@@ -105,12 +99,12 @@ public class Main extends Application {
 							Registry regSS = LocateRegistry.getRegistry(
 									parts[0],
 									Integer.parseInt(parts[1]));
-							ssrmi = (SSRemote) regCS.lookup("/ssrmi");
+							ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 							primaryStage.setScene(createChoiceScene());
 						}
 						catch(RemoteException | NotBoundException err) {
 							//TODO complain
-							throw err;
+							err.printStackTrace();
 						}
 					}
 					else {
@@ -142,16 +136,18 @@ public class Main extends Application {
 			public void handle(ActionEvent e) {
 				// REGISTER HANDLE
 				
+				port = Integer.parseInt(portTF.getText());
 				host = hostTF.getText();
+				int port = Integer.parseInt(portTF.getText());
 				if (System.getSecurityManager() == null) {
 					System.setSecurityManager(new SecurityManager());
 				}
 
 				try {
-					Registry regCS = LocateRegistry.getRegistry(host, CS_PORT);
+					Registry regCS = LocateRegistry.getRegistry(host, port);
 
 					csrmi = (CSRemote) regCS.lookup("/csrmi");
-					boolean reply = csrmi.register(log_uname.getText(), log_pass.getText());
+					boolean reply = csrmi.register(reg_uname.getText(), reg_pass.getText());
 					if(reply) {
 						primaryStage.setScene(createChoiceScene());
 					}
@@ -172,10 +168,14 @@ public class Main extends Application {
 		});
 		
 		Label hostLabel = new Label("Host:");
+		Label portLabel = new Label("Port:");
 		hostTF = new TextField();
+		portTF = new TextField();
 		hostTF.setText(host);
-		hostTF.setMaxWidth(250);
-		south.getChildren().addAll(hostLabel, hostTF);
+		hostTF.setMaxWidth(200);
+		portTF.setText(port + "");
+		portTF.setMaxWidth(200);
+		south.getChildren().addAll(hostLabel, hostTF, portLabel, portTF);
 		south.setAlignment(Pos.CENTER);
 		return new Scene(mainPane, 800, 600);
 	}
@@ -197,18 +197,25 @@ public class Main extends Application {
 				FileChooser fc = new FileChooser();
 				File movie = fc.showOpenDialog(primaryStage);
 				if(movie != null) {
-					 try{
-						 FileInputStream in = new FileInputStream(movie);
-						 Chunk c = new Chunk();
-						 int mylen = in.read(c.getBytes());
-						 boolean first = true;
-						 while(mylen>0){
-							 ssrmi.upload(movie.getName(), c, first);
-							 mylen = in.read();
-						 }
-					 }catch(){
-						 e.printStackTrace();
-					 }
+					try{
+						FileInputStream in = new FileInputStream(movie);
+						int ind = 0;
+						Chunk c = new Chunk(ind);
+						int mylen = in.read(c.getBytes());
+						boolean first = true;
+						while(mylen>0){
+							ssrmi.upload(movie.getName(), c, first);
+							c = new Chunk(++ind);
+							mylen = in.read(c.getBytes());
+						}
+						ssrmi.uploadFinished(movie.getName());
+					}catch(RemoteException e1){
+						 //TODO
+						e1.printStackTrace();
+					}
+					catch(IOException e2) {
+						e2.printStackTrace();
+					}
 				}
 			}
 		});
@@ -320,8 +327,8 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
-		primaryStage.setScene(createChoiceScene());
-		//primaryStage.setScene(createLogRegScene());
+		//primaryStage.setScene(createChoiceScene());
+		primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
 

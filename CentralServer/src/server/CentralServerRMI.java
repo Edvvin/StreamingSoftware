@@ -8,7 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 import my.rmi.*;
 import inner.Subserver;
 
-public class CentralServerRMI extends UnicastRemoteObject implements CSRemote{
+public class CentralServerRMI implements CSRemote{
 
 	public CentralServerRMI() throws RemoteException {
 		super();
@@ -38,6 +38,7 @@ public class CentralServerRMI extends UnicastRemoteObject implements CSRemote{
 	@Override 
 	public boolean connectToCS(String host, int port) throws RemoteException {
 		try {
+			//TODO SS posalje sta ima
 			Registry regSS = LocateRegistry.getRegistry(host,port);
 			SSRemote ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 			Subserver ss = new Subserver(host, port, ssrmi);
@@ -65,7 +66,7 @@ public class CentralServerRMI extends UnicastRemoteObject implements CSRemote{
 	public boolean register(String username, String password) throws RemoteException {
 		User user = new User(username, password);
 		Subserver ss = Main.cs.registerUser(user);
-		return ss==null;
+		return ss!=null;
 	}
 
 	@Override

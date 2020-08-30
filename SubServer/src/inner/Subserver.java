@@ -1,17 +1,15 @@
 package inner;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.stream.Stream;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.RemoteServer;
+import java.rmi.*;
+import java.util.*;
+import my.utils.*;
 
 import my.rmi.*;
 
@@ -19,9 +17,16 @@ public class Subserver {
 	HashMap<String, Movie> movies;
 	int port;
 	String dir;
+	String cshost;
+	int csport;
+	CSRemote csrmi;
+	Users users;
 	
-	public Subserver(int port, String dir) {
+	public Subserver(int port, String dir, String cshost, int csport) {
 		this.port = port;
+		this.cshost = cshost;
+		this.csport = csport;
+		this.users =  new Users();
 		movies = new HashMap<>();
 		this.dir = dir;
 		Path indexPath = Path.of(dir, "index.txt");
@@ -54,22 +59,69 @@ public class Subserver {
 
 	}
 	
-	public boolean upload(String name, Chunk chunk, boolean newFile, boolean done) {
+	public void upload(String name, Chunk chunk, boolean newFile) throws IOException {
 		Path filePath = Path.of(dir, name);
-		try(FileOutputStream fs = new FileOutputStream(filePath.toFile(), newFile)) {
-			fs.write(chunk.getBytes());
-			if(done) {
-				//TODO
-			}
-			return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
+		FileOutputStream fs = new FileOutputStream(filePath.toFile(), newFile);
+		fs.write(chunk.getBytes());
+		fs.close();
+	}
+	
+	public void uploadFinished(String name) {
+		Path filePath = Path.of(dir, name);
+		long numOfChunks = 0;
+		long size = filePath.toFile().length();
+		if(size % Chunk.CHUNK_SIZE == 0) {
+			numOfChunks = size / Chunk.CHUNK_SIZE;
 		}
+		else {
+			numOfChunks = size / Chunk.CHUNK_SIZE + 1;
+		}
+		Movie m = new Movie(name);
+		for(int i = 0; i < numOfChunks; i++)
+			m.addChunk(i);
+		movies.put(name, m);
+		Path indexPath = Path.of(dir, "index.txt");
+		try( 
+			FileWriter fw = new FileWriter(indexPath.toFile(),true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			PrintWriter pw = new PrintWriter(bw);
+			)
+		{
+			for(int i = 0; i < numOfChunks; i++) {
+				pw.println(name + ":" + i);
+			}
+		}
+		catch(IOException e) {
+			e.printStackTrace(); //TODO
+		}
+		
 	}
 	
 	public int getPort() {
 		return port;
+	}
+	
+	public void connect() {
+		Registry regCS;
+		try {
+			regCS = LocateRegistry.getRegistry(cshost, csport);
+			csrmi = (CSRemote) regCS.lookup("/csrmi");
+			String temp = InetAddress.getLocalHost().getHostAddress();
+			csrmi.connectToCS(temp, port);
+		} catch (RemoteException | NotBoundException e) {
+			e.printStackTrace();//TODO RETRY
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	public void newUser(String username, String password) {
+		users.addUser(username, password);
+	}
+	
+	public boolean checkUser(String username, String password) {
+		return users.checkLogin(username, password);
 	}
 }

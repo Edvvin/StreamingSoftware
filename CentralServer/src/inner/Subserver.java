@@ -15,7 +15,7 @@ public class Subserver {
 		this.host = host;
 		this.port = port;
 		this.ss = ss;
-		this.isRegistered = false;
+		this.isRegistered = true;
 		this.users = new ArrayList<>();
 	}
 	
