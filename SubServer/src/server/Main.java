@@ -83,6 +83,7 @@ public class Main {
 			Main.logger.log("Created RMI on port: " + ssport);
 			ss = new Subserver(ssport, dir, host, Integer.parseInt(port));
 			ss.connect();
+			ss.wakeElf();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

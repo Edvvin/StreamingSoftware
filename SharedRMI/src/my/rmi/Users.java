@@ -29,4 +29,12 @@ public class Users implements Serializable, Cloneable{
 		u.users = (ArrayList<User>) this.users.clone();
 		return u;
 	}
+	
+	public boolean exists(User user) {
+		for(User u : users) {
+			if(u.getUsername().equals(user))
+					return true;
+		}
+		return false;
+	}
 }

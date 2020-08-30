@@ -12,7 +12,7 @@ public class MovieElf extends Thread {
 		try {
 			while(!interrupted()) {
 				synchronized(this) {
-					//checkMovies TODO
+			Main.ss.csrmi.
 					wait();
 				}
 			}

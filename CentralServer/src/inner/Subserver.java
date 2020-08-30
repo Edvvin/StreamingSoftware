@@ -50,6 +50,10 @@ public class Subserver {
 		return isRegistered;
 	}
 	
+	public synchronized void setRegistered() {
+		isRegistered = true;
+	}
+
 	public String getHost() {
 		return host;
 	}

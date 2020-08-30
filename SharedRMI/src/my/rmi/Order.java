@@ -12,4 +12,20 @@ public class Order implements Serializable{
 		this.movie = movie;
 		this.chunkIndex = chunkIndex;
 	}
+	
+	public String getHost() {
+		return host;
+	}
+	
+	public String getMovie() {
+		return movie;
+	}
+	
+	public int getPort() {
+		return port;
+	}
+
+	public int getIndex() {
+		return chunkIndex;
+	}
 }

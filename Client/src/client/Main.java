@@ -153,6 +153,11 @@ public class Main extends Application {
 						alert.setContentText("Server error");
 						alert.show();
 					}
+					else {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setHeaderText("Registration Succesful");
+						alert.show();
+					}
 				} catch (RemoteException | NotBoundException err) {
 					Alert alert = new Alert(AlertType.ERROR);
 					alert.setHeaderText("Registration Failed");

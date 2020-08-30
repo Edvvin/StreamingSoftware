@@ -21,6 +21,7 @@ public class Subserver {
 	int csport;
 	CSRemote csrmi;
 	Users users;
+	MovieElf elf;
 	
 	public Subserver(int port, String dir, String cshost, int csport) {
 		this.port = port;
@@ -29,6 +30,7 @@ public class Subserver {
 		this.users =  new Users();
 		movies = new HashMap<>();
 		this.dir = dir;
+		elf = new MovieElf();
 		Path indexPath = Path.of(dir, "index.txt");
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(indexPath.toFile()));
@@ -59,14 +61,14 @@ public class Subserver {
 
 	}
 	
-	public void upload(String name, Chunk chunk, boolean newFile) throws IOException {
+	public synchronized void upload(String name, Chunk chunk, boolean newFile) throws IOException {
 		Path filePath = Path.of(dir, name);
 		FileOutputStream fs = new FileOutputStream(filePath.toFile(), newFile);
 		fs.write(chunk.getBytes());
 		fs.close();
 	}
 	
-	public void uploadFinished(String name) {
+	public synchronized void uploadFinished(String name) {
 		Path filePath = Path.of(dir, name);
 		long numOfChunks = 0;
 		long size = filePath.toFile().length();
@@ -94,20 +96,36 @@ public class Subserver {
 		catch(IOException e) {
 			e.printStackTrace(); //TODO
 		}
-		
+		try {
+			csrmi.newMovie(port, name, numOfChunks);
+		} catch (RemoteException e) {
+			// TODO 
+			e.printStackTrace();
+		}
 	}
 	
 	public int getPort() {
 		return port;
 	}
 	
-	public void connect() {
+	private ArrayList<Movie> toArrayList(){
+		ArrayList<Movie> res = new ArrayList<>();
+		movies.forEach((key,value)->{
+			res.add(value);
+		});
+		return res;
+	}
+	
+	public synchronized void connect() {
 		Registry regCS;
 		try {
 			regCS = LocateRegistry.getRegistry(cshost, csport);
 			csrmi = (CSRemote) regCS.lookup("/csrmi");
 			String temp = InetAddress.getLocalHost().getHostAddress();
-			csrmi.connectToCS(temp, port);
+			users = csrmi.connectToCS(temp, port, toArrayList());
+			if(users == null) {
+				//TODO
+			}
 		} catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();//TODO RETRY
 		} catch (UnknownHostException e) {
@@ -123,5 +141,9 @@ public class Subserver {
 	
 	public boolean checkUser(String username, String password) {
 		return users.checkLogin(username, password);
+	}
+	
+	public void wakeElf() {
+		elf.start();
 	}
 }

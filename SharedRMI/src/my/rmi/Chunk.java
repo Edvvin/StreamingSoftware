@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class Chunk implements Serializable{
 	byte bytes[];
 	int index;
-	public static final int CHUNK_SIZE = 20*1024*1024;
+	public static final int CHUNK_SIZE = 4*1024*1024;
 	
 	public Chunk(int ind) {
 		bytes = new byte[CHUNK_SIZE];

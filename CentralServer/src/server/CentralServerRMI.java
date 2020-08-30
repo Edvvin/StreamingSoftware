@@ -4,7 +4,11 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.RemoteServer;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+
 import my.rmi.*;
 import inner.Subserver;
 
@@ -36,20 +40,20 @@ public class CentralServerRMI implements CSRemote{
 	}
 	
 	@Override 
-	public boolean connectToCS(String host, int port) throws RemoteException {
+	public Users connectToCS(String host, int port, ArrayList<Movie> wih) throws RemoteException {
 		try {
 			//TODO SS posalje sta ima
 			Registry regSS = LocateRegistry.getRegistry(host,port);
 			SSRemote ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 			Subserver ss = new Subserver(host, port, ssrmi);
-			Main.cs.registerSubserver(ss);
+			Main.cs.registerSubserver(ss, wih);
 		} catch (RemoteException err) {
 			System.out.print(err.getMessage());//TODO
 		} catch (NotBoundException err) {
 			System.out.print("asfgsdgas");//TODO
 		}
 
-		return true;
+		return Main.cs.getUsers();
 	}
 	
 	@Override
@@ -57,10 +61,15 @@ public class CentralServerRMI implements CSRemote{
 		return Main.cs.getUsers();
 	}
 	
-	//TODO
-	//public ArrayList<String> getShoppingList() throws RemoteException{
-		//return null;
-	//}
+	public ArrayList<Order> getOrders(int ssport) throws RemoteException{
+		try {
+			return Main.cs.getOrders(RemoteServer.getClientHost(), ssport);
+		} catch (ServerNotActiveException e) {
+			// TODO Not sure how to deal with this
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@Override
 	public boolean register(String username, String password) throws RemoteException {
@@ -70,9 +79,14 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public void newMovie() throws RemoteException {
-		// TODO Auto-generated method stub
-		
+	public boolean newMovie(int port, String name, long numOfChunks) throws RemoteException {
+		try {
+			return Main.cs.newMovie(RemoteServer.getClientHost(), port, name, numOfChunks);
+		} catch (ServerNotActiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 }
