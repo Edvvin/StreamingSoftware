@@ -32,6 +32,9 @@ public class CentralServer {
 		if(best != null) {
 			best.addUser(user);
 		}
+		for(Subserver ss: subs) {
+			ss.getRMI().newUser(user);
+		}
 		return best;
 	}
 	

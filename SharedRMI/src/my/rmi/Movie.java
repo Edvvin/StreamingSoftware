@@ -2,8 +2,6 @@ package my.rmi;
 
 import java.util.ArrayList;
 
-import sun.tools.tree.ArrayAccessExpression;
-
 public class Movie {
 	ArrayList<Integer> chunks;
 	String name;

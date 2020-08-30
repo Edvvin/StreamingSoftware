@@ -71,7 +71,6 @@ public class Main {
 		}
 		
 		try {
-
 			ServerSocket socket = new ServerSocket(0);
 			int ssport = socket.getLocalPort();
 			socket.close();

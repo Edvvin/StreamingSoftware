@@ -17,7 +17,7 @@ public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 	public String login(String username, String password) throws RemoteException {
 		String ssid = "INVALID";
 		try {
-			ssid = RemoteServer.getClientHost() + ":" + Main.ssport;
+			ssid = RemoteServer.getClientHost() + ":" + Main.ss.getPort();
 		} catch (ServerNotActiveException e) {
 			e.printStackTrace();
 		}
@@ -31,9 +31,8 @@ public class SubServerRMI extends UnicastRemoteObject implements SSRemote {
 	}
 
 	@Override
-	public void movieUpdate() throws RemoteException {
-		// TODO Auto-generated method stub
-		
+	public void newMovie() throws RemoteException {
+		movieElf.newMovie();
 	}
 
 	@Override

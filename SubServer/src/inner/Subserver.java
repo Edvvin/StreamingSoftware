@@ -17,9 +17,11 @@ import my.rmi.*;
 
 public class Subserver {
 	HashMap<String, Movie> movies;
+	int port;
 	String dir;
 	
 	public Subserver(int port, String dir) {
+		this.port = port;
 		movies = new HashMap<>();
 		this.dir = dir;
 		Path indexPath = Path.of(dir, "index.txt");
@@ -65,5 +67,9 @@ public class Subserver {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public int getPort() {
+		return port;
 	}
 }

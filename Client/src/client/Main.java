@@ -1,5 +1,7 @@
 package client;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -19,6 +21,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import my.rmi.*;
 
@@ -97,7 +100,18 @@ public class Main extends Application {
 					csrmi = (CSRemote) regCS.lookup("/csrmi");
 					String reply = csrmi.login(log_uname.getText(), log_pass.getText());
 					if(!reply.equals("INVALID") && !reply.equals("FAILED")) {
-						primaryStage.setScene(createChoiceScene());
+						String[] parts = reply.split(":");
+						try {
+							Registry regSS = LocateRegistry.getRegistry(
+									parts[0],
+									Integer.parseInt(parts[1]));
+							ssrmi = (SSRemote) regCS.lookup("/ssrmi");
+							primaryStage.setScene(createChoiceScene());
+						}
+						catch(RemoteException | NotBoundException err) {
+							//TODO complain
+							throw err;
+						}
 					}
 					else {
 						if(reply.equals("INVALID")) {
@@ -180,6 +194,22 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// UPLOAD HANDLE
+				FileChooser fc = new FileChooser();
+				File movie = fc.showOpenDialog(primaryStage);
+				if(movie != null) {
+					 try{
+						 FileInputStream in = new FileInputStream(movie);
+						 Chunk c = new Chunk();
+						 int mylen = in.read(c.getBytes());
+						 boolean first = true;
+						 while(mylen>0){
+							 ssrmi.upload(movie.getName(), c, first);
+							 mylen = in.read();
+						 }
+					 }catch(){
+						 e.printStackTrace();
+					 }
+				}
 			}
 		});
 		watch.setOnAction(new EventHandler<ActionEvent>() {
@@ -290,7 +320,8 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
-		primaryStage.setScene(createLogRegScene());
+		primaryStage.setScene(createChoiceScene());
+		//primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
 
