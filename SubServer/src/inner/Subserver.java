@@ -47,7 +47,7 @@ public class Subserver {
 						}
 						else {
 							m = new Movie(movieName,
-									filePath.toFile().getTotalSpace());
+									filePath.toFile().length());
 							movies.put(movieName, m);
 						}
 						m.addChunk(chunkNum);
@@ -82,7 +82,7 @@ public class Subserver {
 		else {
 			numOfChunks = size / Chunk.CHUNK_SIZE + 1;
 		}
-		Movie m = new Movie(name, filePath.toFile().getTotalSpace());
+		Movie m = new Movie(name, filePath.toFile().length());
 		for(int i = 0; i < numOfChunks; i++)
 			m.addChunk(i);
 		movies.put(name, m);
@@ -101,7 +101,7 @@ public class Subserver {
 			e.printStackTrace(); //TODO
 		}
 		try {
-			csrmi.newMovie(port, name, filePath.toFile().getTotalSpace());
+			csrmi.newMovie(port, name, filePath.toFile().length());
 		} catch (RemoteException e) {
 			// TODO 
 			e.printStackTrace();
@@ -169,9 +169,11 @@ public class Subserver {
 			Registry regSS = LocateRegistry.getRegistry(o.getHost(), o.getPort());
 			SSRemote ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 			Chunk c = ssrmi.download(o.getMovie(), o.getIndex());
+			f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
+			f.write(c.getBytes());
 		}
 		catch(IOException e) {
-			
+			e.printStackTrace();
 		} catch (NotBoundException e) {
 			// TODO do this
 			e.printStackTrace();
@@ -185,7 +187,8 @@ public class Subserver {
 		Chunk c = null;
 		try(RandomAccessFile f = new RandomAccessFile(filePath.toFile(), "r")){
 			c = new Chunk(chunkIndex);
-			int mylen = f.read(c.getBytes(), chunkIndex*Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE);
+			f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
+			int mylen = f.read(c.getBytes());
 			c.pack(mylen);
 		}catch(RemoteException e1){
 			 //TODO

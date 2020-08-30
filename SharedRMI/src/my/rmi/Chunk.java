@@ -20,4 +20,8 @@ public class Chunk implements Serializable{
 	public void pack(int len) {
 		bytes = Arrays.copyOf(bytes, len);
 	}
+	
+	public int getIndex() {
+		return index;
+	}
 }
