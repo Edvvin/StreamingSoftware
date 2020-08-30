@@ -1,8 +1,9 @@
 package my.rmi;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Movie {
+public class Movie implements Serializable {
 	ArrayList<Integer> chunks;
 	String name;
 	

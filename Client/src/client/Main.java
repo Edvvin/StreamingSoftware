@@ -138,7 +138,6 @@ public class Main extends Application {
 				
 				port = Integer.parseInt(portTF.getText());
 				host = hostTF.getText();
-				int port = Integer.parseInt(portTF.getText());
 				if (System.getSecurityManager() == null) {
 					System.setSecurityManager(new SecurityManager());
 				}
@@ -148,10 +147,7 @@ public class Main extends Application {
 
 					csrmi = (CSRemote) regCS.lookup("/csrmi");
 					boolean reply = csrmi.register(reg_uname.getText(), reg_pass.getText());
-					if(reply) {
-						primaryStage.setScene(createChoiceScene());
-					}
-					else {
+					if(!reply) {
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setHeaderText("Registration Failed");
 						alert.setContentText("Server error");
@@ -204,6 +200,7 @@ public class Main extends Application {
 						int mylen = in.read(c.getBytes());
 						boolean first = true;
 						while(mylen>0){
+							c.pack(mylen);
 							ssrmi.upload(movie.getName(), c, first);
 							c = new Chunk(++ind);
 							mylen = in.read(c.getBytes());
