@@ -88,5 +88,15 @@ public class CentralServerRMI implements CSRemote{
 		}
 		return false;
 	}
+
+	@Override
+	public void registerOrders(int port, ArrayList<Order> orders) throws RemoteException {
+		try {
+			Main.cs.registerOrders(RemoteServer.getClientHost(), port, orders);
+		} catch (ServerNotActiveException e) {
+			// TODO 
+			e.printStackTrace();
+		}
+	}
 	
 }

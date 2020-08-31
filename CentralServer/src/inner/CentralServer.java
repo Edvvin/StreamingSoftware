@@ -141,6 +141,8 @@ public class CentralServer {
 			return orders;
 		ArrayList<Order> randomOrders = new ArrayList<>();
 		for(int i = 0; i<Consts.ORDER_COUNT; i++) {
+			if(orders.size() == 0)
+				break;
 			Order temp = orders.get(r.nextInt(orders.size()));
 			randomOrders.add(temp);
 			orders.remove(temp);
@@ -181,6 +183,16 @@ public class CentralServer {
 			}
 		}
 		return false;
+	}
+
+	public synchronized void registerOrders(String sshost, int ssport, ArrayList<Order> orders) {
+		for(Subserver ss: subs) {
+			if(ss.getHost().equals(sshost) && ss.getPort() == ssport) {
+				for(Order o : orders) {
+					chunks.get(o.getMovie() + ":" + o.getIndex()).add(ss);
+				}
+			}
+		}
 	}
 	
 

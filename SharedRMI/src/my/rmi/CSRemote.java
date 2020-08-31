@@ -11,4 +11,5 @@ public interface CSRemote extends Remote{
 	public boolean register(String username, String password) throws RemoteException;
 	public boolean newMovie(int port, String name, long numOfChunks) throws RemoteException;
 	public ArrayList<Order> getOrders(int port) throws RemoteException;
+	public void registerOrders(int port, ArrayList<Order> orders) throws RemoteException;
 }

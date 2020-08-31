@@ -151,7 +151,7 @@ public class Subserver {
 		elf.start();
 	}
 
-	public void carryOut(Order o) {
+	public boolean carryOut(Order o) {
 		Path filePath = Path.of(dir, o.getMovie());
 		File file = filePath.toFile();
 		boolean newFile = false;
@@ -171,12 +171,28 @@ public class Subserver {
 			Chunk c = ssrmi.download(o.getMovie(), o.getIndex());
 			f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
 			f.write(c.getBytes());
+			Path indexPath = Path.of(dir, "index.txt");
+			try( 
+				FileWriter fw = new FileWriter(indexPath.toFile(),true);
+				BufferedWriter bw = new BufferedWriter(fw);
+				PrintWriter pw = new PrintWriter(bw);
+				)
+			{
+				pw.println(o.getMovie() + ":" + o.getIndex());
+				return true;
+			}
+			catch(IOException e) {
+				e.printStackTrace(); //TODO
+				return false;
+			}
 		}
 		catch(IOException e) {
 			e.printStackTrace();
+			return false;
 		} catch (NotBoundException e) {
 			// TODO do this
 			e.printStackTrace();
+			return false;
 		}
 	}
 
@@ -198,5 +214,9 @@ public class Subserver {
 			e2.printStackTrace();
 		}
 		return c;
+	}
+	
+	public void newMovie() {
+		elf.newMovie();
 	}
 }

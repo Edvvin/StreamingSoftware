@@ -25,9 +25,13 @@ public class MovieElf extends Thread {
 						wait();
 					}
 				}
+				ArrayList<Order> success = new ArrayList<>();
 				for(Order o: orders) {
-					Main.ss.carryOut(o);
+					boolean reply = Main.ss.carryOut(o);
+					if(reply)
+						success.add(o);
 				}
+				Main.ss.csrmi.registerOrders(Main.ss.port, success);
 			}
 		}
 		catch(InterruptedException e) {

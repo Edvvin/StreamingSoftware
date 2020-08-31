@@ -31,7 +31,7 @@ public class SubServerRMI implements SSRemote {
 
 	@Override
 	public void newMovie() throws RemoteException {
-		//movieElf.newMovie();
+		Main.ss.newMovie();
 	}
 
 	@Override
