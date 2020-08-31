@@ -3,6 +3,8 @@ package client;
 import java.io.*;
 import java.rmi.*;
 import java.rmi.registry.*;
+import java.util.ArrayList;
+
 import my.utils.*;
 
 import javafx.application.*;
@@ -29,7 +31,6 @@ public class Main extends Application {
 	private static TextField reg_uname;
 	private static TextField log_pass;
 	private static TextField reg_pass;
-	private static ChoiceBox<String> movieChoice;
 	private static TextField hostTF;
 	private static TextField portTF;
 	private static String host = "localhost";
@@ -225,7 +226,13 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// WATCH HANDLE
-				primaryStage.setScene(createRoomCreateScene());
+				try {
+					ArrayList<String> movies = csrmi.getRegisteredMoives();
+					primaryStage.setScene(createRoomCreateScene(movies));
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		logout.setOnAction(new EventHandler<ActionEvent>() {
@@ -270,7 +277,7 @@ public class Main extends Application {
 		return stage;
 	}
 	
-	private Scene createRoomCreateScene() {
+	private Scene createRoomCreateScene(ArrayList<String> movies) {
 		BorderPane border = new BorderPane();
 		VBox left = new VBox();
 		left.setAlignment(Pos.CENTER);
@@ -312,12 +319,15 @@ public class Main extends Application {
 		
 		Label movieLabel = new Label("Choose Movie: ");
 		movieLabel.setFont(new Font(18));
-		movieChoice = new ChoiceBox<>();
+        ObservableList<String> obsMovies =
+        		FXCollections.observableArrayList(movies);
+		ChoiceBox<String> movieChoice = new ChoiceBox<>(obsMovies);
 		left.getChildren().add(movieLabel);
 		left.getChildren().add(movieChoice);
 		Label roomLabel = new Label("Choose your buddies: ");
 		roomLabel.setFont(new Font(18));
-        ObservableList<Buddy> items = FXCollections.observableArrayList(new Buddy("Edo"), new Buddy("Emi"));
+        ObservableList<Buddy> items =
+        		 FXCollections.observableArrayList(new Buddy("Edo"), new Buddy("Emi"));
         ListView<Buddy> buddyList = new ListView<>(items);
 
 		right.getChildren().add(roomLabel);

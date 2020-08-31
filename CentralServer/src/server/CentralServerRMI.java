@@ -98,5 +98,7 @@ public class CentralServerRMI implements CSRemote{
 			e.printStackTrace();
 		}
 	}
-	
+	public ArrayList<String> getRegisteredMoives() throws RemoteException{
+		return Main.cs.getRegisteredMovies();
+	}
 }

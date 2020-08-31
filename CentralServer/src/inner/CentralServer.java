@@ -194,6 +194,45 @@ public class CentralServer {
 			}
 		}
 	}
+
+	public synchronized ArrayList<String> getRegisteredMovies() {
+		int numReg = 0;
+		ArrayList<String> result = new ArrayList<>();
+		HashMap<String, Long> partCnt = new HashMap<>();
+		for(Subserver ss : subs) {
+			if(ss.isRegistered())
+				numReg++;
+		}
+		final int finalNumReg = numReg; // Java wants this idk y
+		chunks.forEach((key, value)->{
+			int numReg2 = 0;
+			for(Subserver ss : value) {
+				if(ss.isRegistered())
+					numReg2++;
+			}
+			if(numReg2 == finalNumReg) {
+				String[] parts = key.split(":");
+				partCnt.putIfAbsent(parts[0],  0L);
+				partCnt.put(parts[0], partCnt.get(parts[0]) + 1);
+			}
+		});
+		
+		partCnt.forEach((key, value)->{
+			long numOfChunks = 0;
+			long fileSize = fileSizes.get(key);
+			if(fileSize % Chunk.CHUNK_SIZE == 0) {
+				numOfChunks = fileSize / Chunk.CHUNK_SIZE;
+			}
+			else {
+				numOfChunks = fileSize / Chunk.CHUNK_SIZE + 1;
+			}
+			if(value == numOfChunks) {
+				result.add(key);
+			}
+		});
+		
+		return result;
+	}
 	
 
 }
