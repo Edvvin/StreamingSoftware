@@ -1,6 +1,8 @@
 package client;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ public class Main extends Application {
 	private static TextField portTF;
 	private static String host = "localhost";
 	private static int port = 1234;
+	public static String currentUser = null;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -101,6 +104,7 @@ public class Main extends Application {
 									parts[0],
 									Integer.parseInt(parts[1]));
 							ssrmi = (SSRemote) regSS.lookup("/ssrmi");
+							currentUser = log_uname.getText();
 							primaryStage.setScene(createChoiceScene());
 						}
 						catch(RemoteException | NotBoundException err) {
@@ -228,7 +232,8 @@ public class Main extends Application {
 				// WATCH HANDLE
 				try {
 					ArrayList<String> movies = csrmi.getRegisteredMoives();
-					primaryStage.setScene(createRoomCreateScene(movies));
+					Users users = csrmi.getUsers();
+					primaryStage.setScene(createRoomCreateScene(movies, users));
 				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -239,6 +244,7 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// LOGOUT HANDLE
+				currentUser = null;
 				primaryStage.setScene(createLogRegScene());
 			}
 		});
@@ -277,10 +283,15 @@ public class Main extends Application {
 		return stage;
 	}
 	
-	private Scene createRoomCreateScene(ArrayList<String> movies) {
+	private Scene createRoomCreateScene(ArrayList<String> movies, Users users) {
 		BorderPane border = new BorderPane();
+		VBox top = new VBox();
+		top.setAlignment(Pos.CENTER);
+		VBox bot = new VBox();
+		bot.setAlignment(Pos.CENTER);
 		VBox left = new VBox();
 		left.setAlignment(Pos.CENTER);
+		left.getChildren().addAll(top, bot);
 		VBox right = new VBox();
 		right.setAlignment(Pos.CENTER);
 		SplitPane center = new SplitPane(left, right);
@@ -313,6 +324,7 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// ALONE HANDLE
+				download("SumatraPDF-3.2-64.exe");
 			}
 		});
 		bottom.getChildren().addAll(back, watchAlone, createRoom);
@@ -322,18 +334,56 @@ public class Main extends Application {
         ObservableList<String> obsMovies =
         		FXCollections.observableArrayList(movies);
 		ChoiceBox<String> movieChoice = new ChoiceBox<>(obsMovies);
-		left.getChildren().add(movieLabel);
-		left.getChildren().add(movieChoice);
-		Label roomLabel = new Label("Choose your buddies: ");
-		roomLabel.setFont(new Font(18));
+		top.getChildren().add(movieLabel);
+		top.getChildren().add(movieChoice);
+		Label buddyLabel = new Label("Choose your buddies: ");
+		buddyLabel.setFont(new Font(18));
         ObservableList<Buddy> items =
-        		 FXCollections.observableArrayList(new Buddy("Edo"), new Buddy("Emi"));
+        		 FXCollections.observableArrayList();
+        for(User u: users.getList()) {
+        	if(!u.getUsername().equals(currentUser))
+				items.add(new Buddy(u.getUsername()));
+        }
         ListView<Buddy> buddyList = new ListView<>(items);
+        Label roomLabel = new Label("Pick a room to join: ");
+		roomLabel.setFont(new Font(18));
+        ObservableList<Room> roomItems =
+        		 FXCollections.observableArrayList();
+        // TODO Add Rooms
+        ListView<Room> roomList = new ListView<>(roomItems);
 
+
+		bot.getChildren().add(buddyLabel);
+		bot.getChildren().add(buddyList);
 		right.getChildren().add(roomLabel);
-		right.getChildren().add(buddyList);
+		right.getChildren().add(roomList);
 		
 		return new Scene(border, 800, 600);
+	}
+	
+	public boolean download(String movieName) {
+		File dir = new File("TempMovies");
+		if(!dir.exists()) {
+			dir.mkdir();
+		}
+		Path filePath = Path.of(dir.getAbsolutePath(), movieName);
+		int i = 0;
+		do{
+			try(RandomAccessFile f = new RandomAccessFile(filePath.toFile(), "rws")){
+				Chunk c = ssrmi.download(movieName, i++);
+				f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
+				f.write(c.getBytes());
+				if(c == null)
+					break;
+				if(c.getBytes().length < Chunk.CHUNK_SIZE)
+					break;
+			}
+			catch(IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}while(true);
+		return true;
 	}
 	
 	@Override

@@ -66,6 +66,7 @@ public class CentralServer {
 				e.printStackTrace();
 			}
 		}
+		users.addUser(user.getUsername(), user.getPassword());
 		return best;
 	}
 	
@@ -91,7 +92,7 @@ public class CentralServer {
 	}
 	
 	public synchronized Users getUsers() {
-		return (Users) users.clone();
+		return users;
 	}
 	
 	public synchronized ArrayList<Order> getOrders(String sshost, int ssport){

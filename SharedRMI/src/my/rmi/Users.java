@@ -32,9 +32,13 @@ public class Users implements Serializable, Cloneable{
 	
 	public boolean exists(User user) {
 		for(User u : users) {
-			if(u.getUsername().equals(user))
+			if(u.getUsername().equals(user.getUsername()))
 					return true;
 		}
 		return false;
+	}
+	
+	public ArrayList<User> getList(){
+		return users;
 	}
 }
