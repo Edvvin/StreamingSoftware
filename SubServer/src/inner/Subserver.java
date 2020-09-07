@@ -205,6 +205,8 @@ public class Subserver {
 			c = new Chunk(chunkIndex);
 			f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
 			int mylen = f.read(c.getBytes());
+			if(mylen < 0)
+				return null;
 			c.pack(mylen);
 		}catch(RemoteException e1){
 			 //TODO

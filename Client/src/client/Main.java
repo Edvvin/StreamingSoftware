@@ -368,13 +368,18 @@ public class Main extends Application {
 		}
 		Path filePath = Path.of(dir.getAbsolutePath(), movieName);
 		int i = 0;
+		if(filePath.toFile().exists())
+			if(filePath.toFile().length() % Chunk.CHUNK_SIZE == 0)
+				i = (int)filePath.toFile().length() / Chunk.CHUNK_SIZE;
+			else
+				i = (int)filePath.toFile().length() / Chunk.CHUNK_SIZE + 1;
 		do{
 			try(RandomAccessFile f = new RandomAccessFile(filePath.toFile(), "rws")){
 				Chunk c = ssrmi.download(movieName, i++);
-				f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
-				f.write(c.getBytes());
 				if(c == null)
 					break;
+				f.seek(c.getIndex()*Chunk.CHUNK_SIZE);
+				f.write(c.getBytes());
 				if(c.getBytes().length < Chunk.CHUNK_SIZE)
 					break;
 			}
