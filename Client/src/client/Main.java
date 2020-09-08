@@ -18,8 +18,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.text.*;
 import javafx.stage.*;
+import javafx.util.Duration;
 import my.rmi.*;
 
 public class Main extends Application {
@@ -38,6 +42,9 @@ public class Main extends Application {
 	private static String host = "localhost";
 	private static int port = 1234;
 	public static String currentUser = null;
+	public static ChoiceBox<String> movieChoice = null;
+	public static ListView<Buddy> buddyList;
+	public static MediaPlayer player;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -324,7 +331,9 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// ALONE HANDLE
-				download("SumatraPDF-3.2-64.exe");
+				String movie = movieChoice.getValue();
+				download(movie);
+				primaryStage.setScene(createMediaAlone(movie));
 			}
 		});
 		bottom.getChildren().addAll(back, watchAlone, createRoom);
@@ -333,7 +342,7 @@ public class Main extends Application {
 		movieLabel.setFont(new Font(18));
         ObservableList<String> obsMovies =
         		FXCollections.observableArrayList(movies);
-		ChoiceBox<String> movieChoice = new ChoiceBox<>(obsMovies);
+		movieChoice = new ChoiceBox<>(obsMovies);
 		top.getChildren().add(movieLabel);
 		top.getChildren().add(movieChoice);
 		Label buddyLabel = new Label("Choose your buddies: ");
@@ -344,7 +353,7 @@ public class Main extends Application {
         	if(!u.getUsername().equals(currentUser))
 				items.add(new Buddy(u.getUsername()));
         }
-        ListView<Buddy> buddyList = new ListView<>(items);
+        buddyList = new ListView<>(items);
         Label roomLabel = new Label("Pick a room to join: ");
 		roomLabel.setFont(new Font(18));
         ObservableList<Room> roomItems =
@@ -389,6 +398,38 @@ public class Main extends Application {
 			}
 		}while(true);
 		return true;
+	}
+	
+	public Scene createMediaAlone(String movie) {
+		BorderPane border = new BorderPane();
+		HBox controls = new HBox();
+		Button play = new Button("Play");
+		play.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				player.play();
+			}
+		});
+		Button pause = new Button("Pause");
+		pause.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				player.pause();
+			}
+		});
+		Button rewind = new Button("<<");
+		Button fastForward = new Button(">>");
+		Button back = new Button("back");
+		controls.getChildren().addAll(back, rewind, play, pause, fastForward);
+		
+		Path moviePath = Path.of("TempMovies", movie);
+		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		player = new MediaPlayer(myMedia);
+		player.setAutoPlay(true);
+		MediaView playerView = new MediaView(player);
+		border.setCenter(playerView);
+		border.setBottom(controls);
+		return new Scene(border, 800, 600);
 	}
 	
 	@Override
