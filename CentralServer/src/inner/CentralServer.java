@@ -44,10 +44,10 @@ public class CentralServer {
 		subs.add(ss);
 	}
 
-	public synchronized Subserver registerUser(User user) {
+	public synchronized Subserver registerUser(User user) throws UserExistsException, NoSubserverException {
 		int max = -1;
 		if(users.exists(user))
-			return null;
+			throw new UserExistsException();
 		Subserver best = null;
 		for(Subserver ss : subs) {
 			if((max == -1 || max < ss.getNumOfUsers()) && ss.isRegistered()) {
@@ -57,6 +57,9 @@ public class CentralServer {
 		}
 		if(best != null) {
 			best.addUser(user);
+		}
+		else {
+			throw new NoSubserverException();
 		}
 		for(Subserver ss: subs) {
 			try {
@@ -85,7 +88,7 @@ public class CentralServer {
 		ArrayList<User> users = ss.strip();
 		subs.remove(ss);
 		for(User u: users) {
-			registerUser(u);
+			//TODO registerUser(u);
 		}
 		//TODO if only one left then it becomes registered
 		return;

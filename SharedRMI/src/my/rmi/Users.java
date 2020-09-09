@@ -13,8 +13,7 @@ public class Users implements Serializable, Cloneable{
 	public synchronized boolean checkLogin(String user, String pass) {
 		for(User u : users) {
 			if(u.getUsername().equals(user))
-				if(u.check(pass)) 
-					return true;
+				return u.check(pass);
 		}
 		return false;
 	}

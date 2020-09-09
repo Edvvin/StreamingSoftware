@@ -21,7 +21,8 @@ public class SubServerRMI implements SSRemote {
 		String ssid = "INVALID";
 		try {
 			ssid = InetAddress.getLocalHost().getHostAddress() + ":" + Main.ss.getPort();
-			Main.ss.checkUser(username, password);
+			if(!Main.ss.checkUser(username, password))
+				return "INVALID";
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

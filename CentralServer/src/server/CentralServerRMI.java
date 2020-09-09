@@ -10,7 +10,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
 import my.rmi.*;
+import inner.NoSubserverException;
 import inner.Subserver;
+import inner.UserExistsException;
 
 public class CentralServerRMI implements CSRemote{
 
@@ -22,7 +24,9 @@ public class CentralServerRMI implements CSRemote{
 	public String login(String username, String password) throws RemoteException {
 		String session = "FAILED";
 		User u = new User(username, password);
-		Subserver ss = Main.cs.routeUser(u);
+		if(!Main.cs.getUsers().exists(u))
+			return "INVALID";
+		Subserver ss = Main.cs.routeUser(u);//check if in users
 		if(ss == null) {
 			return "FAILED";
 		}
@@ -74,8 +78,16 @@ public class CentralServerRMI implements CSRemote{
 	@Override
 	public boolean register(String username, String password) throws RemoteException {
 		User user = new User(username, password);
-		Subserver ss = Main.cs.registerUser(user);
-		return ss!=null;
+		try {
+			Subserver ss = Main.cs.registerUser(user);
+			return true;
+		}
+		catch(UserExistsException e) {
+			return false;
+		}
+		catch(NoSubserverException e) {
+			return false;
+		}
 	}
 
 	@Override

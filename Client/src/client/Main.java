@@ -45,6 +45,7 @@ public class Main extends Application {
 	public static ChoiceBox<String> movieChoice = null;
 	public static ListView<Buddy> buddyList;
 	public static MediaPlayer player;
+	public static MediaView playerView = null;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -414,19 +415,27 @@ public class Main extends Application {
 		pause.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				player.pause();
 			}
 		});
 		Button rewind = new Button("<<");
 		Button fastForward = new Button(">>");
 		Button back = new Button("back");
+		back.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				primaryStage.setScene(createChoiceScene());
+			}
+		});
 		controls.getChildren().addAll(back, rewind, play, pause, fastForward);
 		
 		Path moviePath = Path.of("TempMovies", movie);
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
 		player = new MediaPlayer(myMedia);
 		player.setAutoPlay(true);
-		MediaView playerView = new MediaView(player);
+		if(playerView == null)
+			playerView = new MediaView(player);
+		playerView.setMediaPlayer(player);
 		border.setCenter(playerView);
 		border.setBottom(controls);
 		return new Scene(border, 800, 600);
