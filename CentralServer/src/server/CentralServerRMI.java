@@ -10,6 +10,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
 import my.rmi.*;
+import my.rmi.RoomState.State;
 import inner.NoSubserverException;
 import inner.Subserver;
 import inner.UserExistsException;
@@ -112,5 +113,16 @@ public class CentralServerRMI implements CSRemote{
 	}
 	public ArrayList<String> getRegisteredMoives() throws RemoteException{
 		return Main.cs.getRegisteredMovies();
+	}
+
+	@Override
+	public boolean createRoom(Room room) throws RemoteException {
+		return Main.cs.createRoom(room);
+	}
+
+	@Override
+	public boolean setRoomState(Room room, int time, State state) throws RemoteException {
+		Main.cs.setRoomState(room, time, state);
+		return false;
 	}
 }

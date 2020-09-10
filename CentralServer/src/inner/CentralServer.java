@@ -1,6 +1,7 @@
 package inner;
 
 import my.rmi.*;
+import my.rmi.RoomState.State;
 
 import java.rmi.RemoteException;
 import java.util.*;
@@ -13,12 +14,14 @@ public class CentralServer {
 	Users users;
 	HashMap<String, ArrayList<Subserver>> chunks;
 	HashMap<String, Long> fileSizes;
+	HashMap<Room, RoomState> rooms;
 	int port;
 
 	public CentralServer(int port) {
 		subs = new ArrayList<>();
 		users = new Users();
 		chunks = new HashMap<>();
+		rooms = new HashMap<>();
 		fileSizes = new HashMap<>();
 		this.port = port;
 	}
@@ -236,6 +239,17 @@ public class CentralServer {
 		});
 		
 		return result;
+	}
+	
+	public synchronized boolean createRoom(Room room) {
+		RoomState state = new RoomState(0, RoomState.State.PAUSED);
+		rooms.put(room, state);
+		//TODO notifications
+		return true;
+	}
+
+	public synchronized void setRoomState(Room room, int time, State state) {
+		rooms.get(room).setRoomState(time, state);
 	}
 	
 

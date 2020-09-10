@@ -9,9 +9,13 @@ import java.rmi.registry.Registry;
 import java.rmi.server.RemoteServer;
 import java.rmi.*;
 import java.util.*;
+
+import com.sun.tools.javac.Main;
+
 import my.utils.*;
 
 import my.rmi.*;
+import my.rmi.RoomState.State;
 
 public class Subserver {
 	HashMap<String, Movie> movies;
@@ -220,5 +224,24 @@ public class Subserver {
 	
 	public void newMovie() {
 		elf.newMovie();
+	}
+
+	public boolean createRoom(Room room) {
+		try {
+			return csrmi.createRoom(room);
+		}
+		catch(RemoteException e) {
+			return false;
+		}
+	}
+
+	public boolean setRoomState(Room room, int time, State state) {
+		try {
+			return csrmi.setRoomState(room, time, state);
+		}
+		catch(RemoteException e) {
+			//TODO
+			return false;
+		}
 	}
 }

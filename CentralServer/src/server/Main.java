@@ -19,8 +19,8 @@ public class Main {
 
 	public static boolean nogui;
 	public static Logger logger;
-	static CentralServer cs;
-	static CentralServerRMI myRMI;
+	public static CentralServer cs;
+	public static CentralServerRMI myRMI;
 	
 
 	public static void main(String[] args) {

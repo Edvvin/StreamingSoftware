@@ -9,6 +9,7 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import my.rmi.*;
+import my.rmi.RoomState.State;
 
 public class SubServerRMI implements SSRemote {
 	
@@ -54,6 +55,15 @@ public class SubServerRMI implements SSRemote {
 	public Chunk download(String name, int chunkIndex) throws RemoteException {
 		return Main.ss.download(name, chunkIndex);
 	}
-	
+
+	@Override
+	public boolean createRoom(Room room) {
+		return Main.ss.createRoom(room);
+	}
+
+	@Override
+	public boolean setRoomState(Room room, int time, State state) throws RemoteException {
+		return Main.ss.setRoomState(room,time, state);
+	}
 
 }
