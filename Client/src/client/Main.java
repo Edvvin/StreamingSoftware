@@ -415,6 +415,7 @@ public class Main extends Application {
 		pause.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
+				player.pause();
 			}
 		});
 		Button rewind = new Button("<<");
@@ -429,8 +430,12 @@ public class Main extends Application {
 		controls.getChildren().addAll(back, rewind, play, pause, fastForward);
 		
 		Path moviePath = Path.of("TempMovies", movie);
-		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
-		myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		FileChooser fileChooser = new FileChooser();
+		File file = fileChooser.showOpenDialog(null);
+		String filePath = file.toURI().toString();
+		//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		//myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		Media myMedia = new Media(filePath);
 		player = new MediaPlayer(myMedia);
 		player.setAutoPlay(true);
 		if(playerView == null)
@@ -445,7 +450,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
 		//primaryStage.setScene(createChoiceScene());
-		primaryStage.setScene(createLogRegScene());
+		primaryStage.setScene(createMediaAlone("banana.mp4"));
 		primaryStage.show();
 	}
 
