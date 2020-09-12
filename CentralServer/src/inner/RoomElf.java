@@ -20,6 +20,7 @@ public class RoomElf extends Thread {
 							long lu = value.getLastUpdate();
 							if(System.currentTimeMillis() - lu > Consts.CLIENT_TIMEOUT) {
 								value.setRoomState(value.getTime(), RoomState.State.PAUSED);
+								Main.cs.setRoomState(key, value.getTime(), RoomState.State.PAUSED);
 								//TODO
 							}
 						}

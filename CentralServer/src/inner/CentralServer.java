@@ -243,13 +243,25 @@ public class CentralServer {
 	
 	public synchronized boolean createRoom(Room room) {
 		RoomState state = new RoomState(0, RoomState.State.PAUSED);
-		rooms.put(room, state);
+		rooms.putIfAbsent(room, state);
 		//TODO notifications
 		return true;
 	}
 
 	public synchronized void setRoomState(Room room, double time, State state) {
 		rooms.get(room).setRoomState(time, state);
+		for(Subserver s : subs) {
+			try {
+				s.getRMI().updateState(room, time, state);
+			} catch (RemoteException e) {
+				// TODO waaaaaas?
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public HashMap<Room, RoomState> getRooms() {
+		return rooms;
 	}
 	
 

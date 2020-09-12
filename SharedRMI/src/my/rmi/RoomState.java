@@ -1,6 +1,8 @@
 package my.rmi;
 
-public class RoomState {
+import java.io.Serializable;
+
+public class RoomState implements Serializable{
 	
 	public enum State{
 		PAUSED, PLAYING

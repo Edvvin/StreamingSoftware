@@ -442,7 +442,7 @@ public class Main extends Application {
 				}
 				try {
 					Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
-							RoomState.State.PAUSED);
+							RoomState.State.PLAYING);
 					player.play();
 				} catch (RemoteException e) {
 					// TODO wat?
@@ -483,7 +483,6 @@ public class Main extends Application {
 		
 		Path moviePath = Path.of("TempMovies", movie);
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
-		//myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
 		player = new MediaPlayer(myMedia);
 		playerView = new MediaView(player);
 		border.setCenter(playerView);
@@ -514,7 +513,7 @@ public class Main extends Application {
 				try {
 					while(!interrupted()) {
 						Thread.sleep(5000);
-						Main.ssrmi.getUpdate();
+						//Main.ssrmi.getUpdate();
 					}
 				} catch (InterruptedException e) {
 				}

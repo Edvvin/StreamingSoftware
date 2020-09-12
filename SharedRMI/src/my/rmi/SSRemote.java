@@ -13,4 +13,5 @@ public interface SSRemote extends Remote{
 	public boolean createRoom(Room room) throws RemoteException;
 	public boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
 	public RoomState getRoomState(Room room, String user, boolean force) throws RemoteException;
+	public void updateState(Room room, double time, RoomState.State state) throws RemoteException;
 }

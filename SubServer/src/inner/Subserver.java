@@ -165,10 +165,12 @@ public class Subserver {
 			regCS = LocateRegistry.getRegistry(cshost, csport);
 			csrmi = (CSRemote) regCS.lookup("/csrmi");
 			String temp = InetAddress.getLocalHost().getHostAddress();
-			users = csrmi.connectToCS(temp, port, toArrayList());
-			if(users == null) {
+			SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
+			if(sss == null) {
 				//TODO
 			}
+			users = sss.getUsers();
+			rooms = sss.getRooms();
 		} catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();//TODO RETRY
 		} catch (UnknownHostException e) {
@@ -281,7 +283,14 @@ public class Subserver {
 	}
 
 	public synchronized RoomState getRoomState(Room room, String user, boolean force) {
-		boolean recieved = getRecieved(room, user);
+		boolean recieved = false;
+		if(!user.equals(room.getAdmin())) {
+			recieved = getRecieved(room, user);
+		}
+		else {
+			RoomState rs = rooms.get(room);
+			return rs;
+		}
 		if(force) {
 			RoomState rs = rooms.get(room);
 			return rs;
@@ -297,5 +306,10 @@ public class Subserver {
 		};
 		RoomState rs = rooms.get(room);
 		return rs;
+	}
+
+	public synchronized void updateState(Room room, double time, State state) {
+		rooms.get(room).setRoomState(time, state);
+		clearRecieved(room);
 	}
 }

@@ -71,4 +71,10 @@ public class SubServerRMI implements SSRemote {
 		return Main.ss.getRoomState(room, user, force);
 	}
 
+	@Override
+	public void updateState(Room room, double time, State state) throws RemoteException {
+		Main.ss.updateState(room, time, state);
+		
+	}
+
 }

@@ -45,7 +45,7 @@ public class CentralServerRMI implements CSRemote{
 	}
 	
 	@Override 
-	public Users connectToCS(String host, int port, ArrayList<Movie> wih) throws RemoteException {
+	public SubServerState connectToCS(String host, int port, ArrayList<Movie> wih) throws RemoteException {
 		try {
 			//TODO SS posalje sta ima
 			Registry regSS = LocateRegistry.getRegistry(host,port);
@@ -58,7 +58,8 @@ public class CentralServerRMI implements CSRemote{
 			System.out.print("asfgsdgas");//TODO
 		}
 
-		return Main.cs.getUsers();
+		SubServerState sss = new SubServerState(Main.cs.getUsers(), Main.cs.getRooms());
+		return sss;
 	}
 	
 	@Override
