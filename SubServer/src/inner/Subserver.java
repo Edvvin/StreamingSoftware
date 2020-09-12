@@ -26,6 +26,8 @@ public class Subserver {
 	CSRemote csrmi;
 	Users users;
 	MovieElf elf;
+	HashMap<Room, RoomState> rooms;
+	HashMap<Room, ArrayList<Boolean>> recieved;
 	
 	public Subserver(int port, String dir, String cshost, int csport) {
 		this.port = port;
@@ -33,6 +35,7 @@ public class Subserver {
 		this.csport = csport;
 		this.users =  new Users();
 		movies = new HashMap<>();
+		rooms = new HashMap<>();
 		this.dir = dir;
 		elf = new MovieElf();
 		Path indexPath = Path.of(dir, "index.txt");
@@ -67,6 +70,38 @@ public class Subserver {
 			}
 		}
 
+	}
+	
+	private synchronized void clearRecieved (Room room) {
+		ArrayList<Boolean> rec = recieved.get(room);
+		if(rec != null) {
+			rec.clear();
+			for(int i = 0;i < room.getBuddies().size(); i++) {
+				rec.add(false);
+			}
+		}
+	}
+	
+	private synchronized boolean getRecieved(Room room, String user) {
+		ArrayList<Boolean> rec = recieved.get(room);
+		if(rec == null) {
+			rec = new ArrayList<Boolean>();
+			for(int i = 0;i < room.getBuddies().size(); i++) {
+				rec.add(false);
+			}
+			recieved.put(room, rec);
+		}
+		int i = 0;
+		for (String u : room.getBuddies()) {
+			if(u.equals(user)) {
+				boolean rez = rec.get(i);
+				rec.set(i, true);
+				return rez;
+			}
+			i++;
+		}
+		assert(false);
+		return false;
 	}
 	
 	public synchronized void upload(String name, Chunk chunk, boolean newFile) throws IOException {
@@ -243,5 +278,24 @@ public class Subserver {
 			//TODO
 			return false;
 		}
+	}
+
+	public synchronized RoomState getRoomState(Room room, String user, boolean force) {
+		boolean recieved = getRecieved(room, user);
+		if(force) {
+			RoomState rs = rooms.get(room);
+			return rs;
+		}
+		while(recieved) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				//TODO sta ako se zaglavi a klijent ugasi
+				e.printStackTrace();
+			}
+			recieved = getRecieved(room, user);
+		};
+		RoomState rs = rooms.get(room);
+		return rs;
 	}
 }

@@ -335,7 +335,14 @@ public class Main extends Application {
 				// ALONE HANDLE
 				String movie = movieChoice.getValue();
 				download(movie);
-				primaryStage.setScene(createMediaAdmin(movie));
+				Main.currentRoom = new Room(movie, currentUser);
+				try {
+					Main.ssrmi.createRoom(Main.currentRoom);
+					primaryStage.setScene(createMediaAdmin(movie));
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		bottom.getChildren().addAll(back, watchAlone, createRoom);
@@ -426,7 +433,6 @@ public class Main extends Application {
 				}
 			}
 		};
-		t.start();
 		Button play = new Button("Play");
 		play.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -479,10 +485,23 @@ public class Main extends Application {
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		//myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
 		player = new MediaPlayer(myMedia);
-		player.setAutoPlay(true);
 		playerView = new MediaView(player);
 		border.setCenter(playerView);
 		border.setBottom(controls);
+		try {
+			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
+			player.seek(new Duration(rs.getTime()));
+			if(rs.getState() == RoomState.State.PAUSED) {
+				player.pause();
+			}
+			else {
+				player.play();
+			}
+		} catch (RemoteException e) {
+			// TODO do dis
+			e.printStackTrace();
+		}
+		t.start();
 		return new Scene(border, 800, 600);
 	}
 

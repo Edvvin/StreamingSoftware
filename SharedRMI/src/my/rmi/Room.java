@@ -35,6 +35,10 @@ public class Room implements Serializable {
 		return roomName;
 	}
 	
+	public ArrayList<String> getBuddies(){
+		return buddies;
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		Room r = (Room)o;
