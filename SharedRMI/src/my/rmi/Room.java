@@ -39,6 +39,10 @@ public class Room implements Serializable {
 		return buddies;
 	}
 	
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		Room r = (Room)o;

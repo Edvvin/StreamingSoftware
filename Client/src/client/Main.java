@@ -242,7 +242,8 @@ public class Main extends Application {
 				try {
 					ArrayList<String> movies = csrmi.getRegisteredMoives();
 					Users users = csrmi.getUsers();
-					primaryStage.setScene(createRoomCreateScene(movies, users));
+					ArrayList<Room> rooms = ssrmi.getRooms();
+					primaryStage.setScene(createRoomCreateScene(rooms, movies, users));
 				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -292,7 +293,7 @@ public class Main extends Application {
 		return stage;
 	}
 	
-	private Scene createRoomCreateScene(ArrayList<String> movies, Users users) {
+	private Scene createRoomCreateScene(ArrayList<Room> rooms, ArrayList<String> movies, Users users) {
 		BorderPane border = new BorderPane();
 		VBox top = new VBox();
 		top.setAlignment(Pos.CENTER);
@@ -391,10 +392,14 @@ public class Main extends Application {
         buddyList = new ListView<>(items);
         Label roomLabel = new Label("Pick a room to join: ");
 		roomLabel.setFont(new Font(18));
-        ObservableList<Room> roomItems =
+        ObservableList<RoomGUI> roomItems =
         		 FXCollections.observableArrayList();
-        // TODO Add Rooms
-        ListView<Room> roomList = new ListView<>(roomItems);
+        for(Room r: rooms) {
+        	if(!r.isPrivate())
+				if(r.getBuddies().contains(currentUser) || r.getAdmin().equals(currentUser))
+					roomItems.add(new RoomGUI(r.getRoomName()));
+        }
+        ListView<RoomGUI> roomList = new ListView<>(roomItems);
 
 
 		bot.getChildren().add(buddyLabel);
@@ -575,7 +580,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
 		//primaryStage.setScene(createChoiceScene());
-		primaryStage.setScene(createRoomCreateScene(new ArrayList<>(), new Users()));
+		primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
 

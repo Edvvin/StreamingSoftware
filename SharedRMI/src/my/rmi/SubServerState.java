@@ -1,8 +1,9 @@
 package my.rmi;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class SubServerState {
+public class SubServerState implements Serializable{
 	Users users;
 	HashMap<Room, RoomState> rooms;
 

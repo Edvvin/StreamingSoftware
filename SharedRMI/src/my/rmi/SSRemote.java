@@ -2,6 +2,7 @@ package my.rmi;
 
 import java.io.IOException;
 import java.rmi.*;
+import java.util.ArrayList;
 
 public interface SSRemote extends Remote{
 	public String login(String username, String password) throws RemoteException;
@@ -14,4 +15,5 @@ public interface SSRemote extends Remote{
 	public boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
 	public RoomState getRoomState(Room room, String user, boolean force) throws RemoteException;
 	public void updateState(Room room, double time, RoomState.State state) throws RemoteException;
+	ArrayList<Room> getRooms() throws RemoteException;
 }

@@ -309,7 +309,17 @@ public class Subserver {
 	}
 
 	public synchronized void updateState(Room room, double time, State state) {
+		if(!rooms.containsKey(room))
+			rooms.putIfAbsent(room, new RoomState(time, state));
 		rooms.get(room).setRoomState(time, state);
 		clearRecieved(room);
+	}
+
+	public synchronized ArrayList<Room> getRooms() {
+		ArrayList<Room> roomList = new ArrayList<>();
+		rooms.forEach((key,value)->{
+			roomList.add(key);
+		});
+		return roomList;
 	}
 }

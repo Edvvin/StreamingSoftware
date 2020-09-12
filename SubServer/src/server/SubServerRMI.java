@@ -8,6 +8,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+
 import my.rmi.*;
 import my.rmi.RoomState.State;
 
@@ -74,7 +76,11 @@ public class SubServerRMI implements SSRemote {
 	@Override
 	public void updateState(Room room, double time, State state) throws RemoteException {
 		Main.ss.updateState(room, time, state);
-		
+	}
+	
+	@Override
+	public ArrayList<Room> getRooms(){
+		return Main.ss.getRooms();
 	}
 
 }
