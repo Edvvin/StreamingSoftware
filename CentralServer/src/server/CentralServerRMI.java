@@ -121,7 +121,7 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public boolean setRoomState(Room room, int time, State state) throws RemoteException {
+	public boolean setRoomState(Room room, double time, State state) throws RemoteException {
 		Main.cs.setRoomState(room, time, state);
 		return false;
 	}

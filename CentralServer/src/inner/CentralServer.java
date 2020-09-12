@@ -248,7 +248,7 @@ public class CentralServer {
 		return true;
 	}
 
-	public synchronized void setRoomState(Room room, int time, State state) {
+	public synchronized void setRoomState(Room room, double time, State state) {
 		rooms.get(room).setRoomState(time, state);
 	}
 	

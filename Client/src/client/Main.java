@@ -46,6 +46,7 @@ public class Main extends Application {
 	public static ListView<Buddy> buddyList;
 	public static MediaPlayer player;
 	public static MediaView playerView = null;
+	public static Room currentRoom = null;
 
 	private Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -334,7 +335,7 @@ public class Main extends Application {
 				// ALONE HANDLE
 				String movie = movieChoice.getValue();
 				download(movie);
-				primaryStage.setScene(createMediaAlone(movie));
+				primaryStage.setScene(createMediaAdmin(movie));
 			}
 		});
 		bottom.getChildren().addAll(back, watchAlone, createRoom);
@@ -401,21 +402,61 @@ public class Main extends Application {
 		return true;
 	}
 	
-	public Scene createMediaAlone(String movie) {
+	public Scene createMediaAdmin(String movie) {
 		BorderPane border = new BorderPane();
 		HBox controls = new HBox();
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					while(!interrupted()) {
+						Thread.sleep(5000);
+						RoomState.State state;
+						if(player.getStatus() == MediaPlayer.Status.PLAYING)
+							state = RoomState.State.PLAYING;
+						else
+							state = RoomState.State.PAUSED;
+						try {
+							Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(), state);
+						} catch (RemoteException e) {
+							// TODO wat?
+						}
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		};
+		t.start();
 		Button play = new Button("Play");
 		play.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				player.play();
+				if(player.getStatus() == MediaPlayer.Status.PLAYING) {
+					return;
+				}
+				try {
+					Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
+							RoomState.State.PAUSED);
+					player.play();
+				} catch (RemoteException e) {
+					// TODO wat?
+				}
 			}
 		});
 		Button pause = new Button("Pause");
 		pause.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				player.pause();
+				if(player.getStatus() != MediaPlayer.Status.PLAYING) {
+					return;
+				}
+				try {
+					player.pause();
+					Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
+							RoomState.State.PAUSED);
+				} catch (RemoteException e) {
+					// TODO wat?
+				}
 			}
 		});
 		Button rewind = new Button("<<");
@@ -424,33 +465,73 @@ public class Main extends Application {
 		back.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
+				t.interrupt();
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+				}
 				primaryStage.setScene(createChoiceScene());
 			}
 		});
 		controls.getChildren().addAll(back, rewind, play, pause, fastForward);
 		
 		Path moviePath = Path.of("TempMovies", movie);
-		FileChooser fileChooser = new FileChooser();
-		File file = fileChooser.showOpenDialog(null);
-		String filePath = file.toURI().toString();
-		//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		//myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
-		Media myMedia = new Media(filePath);
 		player = new MediaPlayer(myMedia);
 		player.setAutoPlay(true);
-		if(playerView == null)
-			playerView = new MediaView(player);
-		playerView.setMediaPlayer(player);
+		playerView = new MediaView(player);
 		border.setCenter(playerView);
 		border.setBottom(controls);
 		return new Scene(border, 800, 600);
 	}
+
+	public Scene createMediaGuest() {
+		BorderPane border = new BorderPane();
+		HBox controls = new HBox();
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					while(!interrupted()) {
+						Thread.sleep(5000);
+						Main.ssrmi.getUpdate();
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		};
+		t.start();
+		Button back = new Button("back");
+		back.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				t.interrupt();
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+				}
+				primaryStage.setScene(createChoiceScene());
+			}
+		});
+		controls.getChildren().add(back);
+		
+		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
+		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		//myMedia = new Media("http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv");
+		player = new MediaPlayer(myMedia);
+		playerView = new MediaView(player);
+		border.setCenter(playerView);
+		border.setBottom(controls);
+		return new Scene(border, 800, 600);
+	}
+
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
 		//primaryStage.setScene(createChoiceScene());
-		primaryStage.setScene(createMediaAlone("banana.mp4"));
+		primaryStage.setScene(createMediaAdmin("ert.mp4"));
 		primaryStage.show();
 	}
 

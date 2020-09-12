@@ -5,10 +5,10 @@ import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
-public class Room extends HBox {
+public class RoomGUI extends HBox {
 	private Button joinBtn;
 	private Label label;
-	public Room(String roomName) {
+	public RoomGUI(String roomName) {
 		joinBtn = new Button();
 		joinBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

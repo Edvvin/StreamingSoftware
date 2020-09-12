@@ -62,7 +62,7 @@ public class SubServerRMI implements SSRemote {
 	}
 
 	@Override
-	public boolean setRoomState(Room room, int time, State state) throws RemoteException {
+	public boolean setRoomState(Room room, double time, State state) throws RemoteException {
 		return Main.ss.setRoomState(room,time, state);
 	}
 

@@ -14,5 +14,5 @@ public interface CSRemote extends Remote{
 	public void registerOrders(int port, ArrayList<Order> orders) throws RemoteException;
 	public ArrayList<String> getRegisteredMoives() throws RemoteException;
 	public boolean createRoom(Room room) throws RemoteException;
-	boolean setRoomState(Room room, int time, RoomState.State state) throws RemoteException;
+	boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
 }

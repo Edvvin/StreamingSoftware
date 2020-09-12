@@ -23,6 +23,18 @@ public class Room implements Serializable {
 		this.roomName = "";
 	}
 	
+	public String getMovie() {
+		return movie;
+	}
+	
+	public String getAdmin() {
+		return admin;
+	}
+	
+	public String getRoomName() {
+		return roomName;
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		Room r = (Room)o;

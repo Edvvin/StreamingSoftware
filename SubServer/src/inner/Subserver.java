@@ -235,7 +235,7 @@ public class Subserver {
 		}
 	}
 
-	public boolean setRoomState(Room room, int time, State state) {
+	public boolean setRoomState(Room room, double time, State state) {
 		try {
 			return csrmi.setRoomState(room, time, state);
 		}

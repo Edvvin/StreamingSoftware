@@ -6,17 +6,17 @@ public class RoomState {
 		PAUSED, PLAYING
 	}
 	
-	private int time;
+	private double time;
 	private State state;
 	private long lastUpdate;
 	
-	public RoomState(int time, State state) {
+	public RoomState(double time, State state) {
 		this.time = time;
 		this.state = state;
 		this.lastUpdate = System.currentTimeMillis();
 	}
 	
-	public int getTime() {
+	public double getTime() {
 		return time;
 	}
 	
@@ -28,7 +28,7 @@ public class RoomState {
 		return lastUpdate;
 	}
 	
-	public void setRoomState(int time, State state) {
+	public void setRoomState(double time, State state) {
 		this.time = time;
 		this.state = state;
 		this.lastUpdate = System.currentTimeMillis();

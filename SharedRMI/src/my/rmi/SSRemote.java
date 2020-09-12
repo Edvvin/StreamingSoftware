@@ -11,5 +11,5 @@ public interface SSRemote extends Remote{
 	public void newUser(String username, String password) throws RemoteException;
 	public Chunk download(String name, int chunkIndex) throws RemoteException;
 	boolean createRoom(Room room) throws RemoteException;
-	boolean setRoomState(Room room, int time, RoomState.State state) throws RemoteException;
+	boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
 }
