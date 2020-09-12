@@ -325,7 +325,26 @@ public class Main extends Application {
 		createRoom.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				// ROOM HANDLE
+				// CREATE ROOM HANDLE
+				String movie = movieChoice.getValue();
+				TextInputDialog td = new TextInputDialog();
+				td.setHeaderText("Room Name");
+				td.setContentText("");
+				td.showAndWait();
+				String roomName = td.getEditor().getText();
+				ArrayList<String> buddies = new ArrayList<>();
+				for(Buddy b: buddyList.getItems()) {
+					if(b.isChecked()) {
+						buddies.add(b.getUsername());
+					}
+				}
+				Room room = new Room(movie, currentUser, roomName, buddies);
+				try {
+					ssrmi.createRoom(room);
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		Button watchAlone = new Button("Watch Alone");
@@ -345,7 +364,14 @@ public class Main extends Application {
 				}
 			}
 		});
-		bottom.getChildren().addAll(back, watchAlone, createRoom);
+		Button joinRoom = new Button("Join Room");
+		joinRoom.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				// JOIN HANDLE
+			}
+		});
+		bottom.getChildren().addAll(back, watchAlone, joinRoom, createRoom);
 		
 		Label movieLabel = new Label("Choose Movie: ");
 		movieLabel.setFont(new Font(18));
@@ -549,7 +575,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
 		//primaryStage.setScene(createChoiceScene());
-		primaryStage.setScene(createMediaAdmin("ert.mp4"));
+		primaryStage.setScene(createRoomCreateScene(new ArrayList<>(), new Users()));
 		primaryStage.show();
 	}
 
