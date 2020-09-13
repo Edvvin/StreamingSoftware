@@ -132,5 +132,9 @@ public class CentralServerRMI implements CSRemote{
 	public HashMap<Room, RoomState> getRooms(){
 		return Main.cs.getRooms();
 	}
-	
+
+	@Override
+	public String complain(String user, ArrayList<String> tried) {
+		return Main.cs.complain(user, tried);
+	}
 }

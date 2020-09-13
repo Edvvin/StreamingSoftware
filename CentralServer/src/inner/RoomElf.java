@@ -13,15 +13,14 @@ public class RoomElf extends Thread {
 	public void run() {
 		try {
 			while(!interrupted()) {
-				Thread.sleep(3000);
+				Thread.sleep(Consts.ADMIN_TIMEOUT);
 				synchronized(Main.cs) {
 					Main.cs.rooms.forEach((key,value) -> {
 						if(value.getState() == RoomState.State.PLAYING) {
 							long lu = value.getLastUpdate();
-							if(System.currentTimeMillis() - lu > Consts.CLIENT_TIMEOUT) {
+							if(System.currentTimeMillis() - lu > Consts.ADMIN_TIMEOUT) {
 								value.setRoomState(value.getTime(), RoomState.State.PAUSED);
 								Main.cs.setRoomState(key, value.getTime(), RoomState.State.PAUSED);
-								//TODO
 							}
 						}
 					});

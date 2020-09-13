@@ -17,4 +17,5 @@ public interface CSRemote extends Remote{
 	public boolean createRoom(Room room) throws RemoteException;
 	boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
 	HashMap<Room, RoomState> getRooms() throws RemoteException;
+	public String complain(String user, ArrayList<String> tried) throws RemoteException;
 }

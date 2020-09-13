@@ -62,5 +62,20 @@ public class Subserver {
 		return port;
 	}
 	
+	@Override
+	public String toString() {
+		return host + ":" + port;
+	}
+	
+	public User removeUser(String user) {
+		for(User u: users) {
+			if(u.getUsername().equals(user)) {
+				users.remove(u);
+				return u;
+			}
+		}
+		return null;
+	}
+	
 	
 }

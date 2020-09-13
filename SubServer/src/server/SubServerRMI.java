@@ -87,5 +87,10 @@ public class SubServerRMI implements SSRemote {
 	public void newRoom(Room room, RoomState rs) {
 		Main.ss.newRoom(room, rs);
 	}
+	
+	@Override
+	public void ping() {
+		return;
+	}
 
 }

@@ -17,4 +17,5 @@ public interface SSRemote extends Remote{
 	public void updateState(Room room, double time, RoomState.State state) throws RemoteException;
 	ArrayList<Room> getRooms() throws RemoteException;
 	void newRoom(Room room, RoomState rs) throws RemoteException;
+	public void ping() throws RemoteException;
 }

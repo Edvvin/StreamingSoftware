@@ -48,6 +48,7 @@ public class Main extends Application {
 	public static MediaPlayer player;
 	public static MediaView playerView = null;
 	public static Room currentRoom = null;
+	public static String currentSS = null;
 
 	private static Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -114,6 +115,7 @@ public class Main extends Application {
 									parts[0],
 									Integer.parseInt(parts[1]));
 							ssrmi = (SSRemote) regSS.lookup("/ssrmi");
+							currentSS = reply;
 							currentUser = log_uname.getText();
 							primaryStage.setScene(Main.createChoiceScene());
 						}
@@ -442,7 +444,7 @@ public class Main extends Application {
 			public void run() {
 				try {
 					while(!interrupted()) {
-						Thread.sleep(5000);
+						Thread.sleep(Consts.ADMIN_ROOM_UPDATE);
 						RoomState.State state;
 						if(player.getStatus() == MediaPlayer.Status.PLAYING)
 							state = RoomState.State.PLAYING;
@@ -495,7 +497,7 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent arg0) {
 				try {
-					double newTime = player.getCurrentTime().toMillis() - 15000;
+					double newTime = player.getCurrentTime().toMillis() - Consts.REWIND_DURATION;
 					if(newTime < 0) {
 						newTime = 0;
 					}
@@ -503,6 +505,7 @@ public class Main extends Application {
 						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
 					else
 						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
+					player.seek(Duration.millis(newTime));
 				} catch (RemoteException e) {
 					// TODO wat?
 				}
@@ -521,6 +524,7 @@ public class Main extends Application {
 						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
 					else
 						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
+					player.seek(Duration.millis(newTime));
 				} catch (RemoteException e) {
 					// TODO wat?
 				}
@@ -548,7 +552,6 @@ public class Main extends Application {
 		border.setBottom(controls);
 		try {
 			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-			Status s = player.getStatus();
 			player.setOnReady(new Runnable() {
 				@Override
 				public void run() {
@@ -578,19 +581,15 @@ public class Main extends Application {
 			public void run() {
 				try {
 					while(!interrupted()) {
-						Thread.sleep(5000);
+						Thread.sleep(Consts.GUEST_ROOM_UPDATE);
 						try {
 							RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, Main.currentUser, false);
-							if(Math.abs(player.getCurrentTime().toMillis() - rs.getTime()) > 1000 
-									|| ((player.getStatus() == Status.PLAYING) !=
-									(rs.getState() == RoomState.State.PLAYING)) ) {
-								player.seek(new Duration(rs.getTime()));
-								if(rs.getState() == RoomState.State.PAUSED) {
-									player.pause();
-								}
-								else {
-									player.play();
-								}
+							player.seek(new Duration(rs.getTime()));
+							if(rs.getState() == RoomState.State.PAUSED) {
+								player.pause();
+							}
+							else {
+								player.play();
 							}
 						} catch (RemoteException e) {
 							// TODO nani?
@@ -606,7 +605,7 @@ public class Main extends Application {
 			public void handle(ActionEvent arg0) {
 				t.interrupt();
 				try {
-					t.join();
+					t.join(2000);
 				} catch (InterruptedException e) {
 				}
 				primaryStage.setScene(createChoiceScene());
@@ -621,13 +620,18 @@ public class Main extends Application {
 		border.setBottom(controls);
 		try {
 			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-			player.seek(new Duration(rs.getTime()));
-			if(rs.getState() == RoomState.State.PAUSED) {
-				player.pause();
-			}
-			else {
-				player.play();
-			}
+			player.setOnReady(new Runnable() {
+				@Override
+				public void run() {
+					player.seek(Duration.millis(rs.getTime()));
+					if(rs.getState() == RoomState.State.PAUSED) {
+						player.pause();
+					}
+					else {
+						player.play();
+					}
+				}
+			});
 		} catch (RemoteException e) {
 			// TODO do dis
 			e.printStackTrace();
@@ -635,7 +639,39 @@ public class Main extends Application {
 		t.start();
 		return new Scene(border, 800, 600);
 	}
-
+	
+	public void complain() {
+		ArrayList<String> tried = new ArrayList<>();
+		tried.add(currentSS);
+		try {
+			do {
+				String reply = Main.csrmi.complain(currentUser, tried);
+				if(reply.equals("FAILED")) {
+					deadCS();
+				}
+				try {
+					String[] parts = reply.split(":");
+					Registry regSS = LocateRegistry.getRegistry(
+							parts[0],
+							Integer.parseInt(parts[1]));
+					ssrmi = (SSRemote) regSS.lookup("/ssrmi");
+					currentSS = reply;
+					ssrmi.ping();
+					return;
+				}
+				catch(RemoteException | NotBoundException e) {
+					tried.add(reply);
+				}
+			}while(true);
+		}
+		catch(RemoteException e) {
+			deadCS();
+		}
+	}
+	
+	public void deadCS() {
+		//TODO
+	}
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {

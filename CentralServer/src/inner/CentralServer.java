@@ -15,6 +15,7 @@ public class CentralServer {
 	HashMap<String, ArrayList<Subserver>> chunks;
 	HashMap<String, Long> fileSizes;
 	HashMap<Room, RoomState> rooms;
+	RoomElf elf;
 	int port;
 
 	public CentralServer(int port) {
@@ -24,6 +25,8 @@ public class CentralServer {
 		rooms = new HashMap<>();
 		fileSizes = new HashMap<>();
 		this.port = port;
+		elf = new RoomElf();
+		elf.start();
 	}
 	
 	public synchronized void registerSubserver(Subserver ss, ArrayList<Movie> wih) {
@@ -48,13 +51,13 @@ public class CentralServer {
 	}
 
 	public synchronized Subserver registerUser(User user) throws UserExistsException, NoSubserverException {
-		int max = -1;
+		int min = -1;
 		if(users.exists(user))
 			throw new UserExistsException();
 		Subserver best = null;
 		for(Subserver ss : subs) {
-			if((max == -1 || max < ss.getNumOfUsers()) && ss.isRegistered()) {
-				max = ss.getNumOfUsers();
+			if((min == -1 || min > ss.getNumOfUsers()) && ss.isRegistered()) {
+				min = ss.getNumOfUsers();
 				best = ss;
 			}
 		}
@@ -269,6 +272,32 @@ public class CentralServer {
 
 	public synchronized HashMap<Room, RoomState> getRooms() {
 		return rooms;
+	}
+
+	public synchronized String complain(String user, ArrayList<String> tried) {
+		Subserver ssold = routeUser(new User(user, "123"));
+		if(!tried.contains(ssold.toString()))
+			return ssold.toString();
+		ArrayList<Subserver> baggie = new ArrayList<>();
+		for(Subserver s : subs) {
+			if(s.isRegistered() && !tried.contains(s.toString())) {
+				baggie.add(s);
+			}
+		}
+		if(baggie.size() == 0) {
+			return "FAILED";
+		}
+		int min = -1;
+		Subserver best = null;
+		for(Subserver s : baggie) {
+			if(min == -1 || min > s.getNumOfUsers()) {
+				min = s.getNumOfUsers();
+				best = s;
+			}
+		}
+		Subserver ssnew = best;
+		ssnew.addUser(ssold.removeUser(user));
+		return ssnew.toString();
 	}
 	
 
