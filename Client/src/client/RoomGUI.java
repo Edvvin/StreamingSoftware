@@ -22,7 +22,10 @@ public class RoomGUI extends HBox {
 			public void handle(ActionEvent arg0) {
 				Main.download(room.getMovie());
 				Main.currentRoom = room;
-				Main.primaryStage.setScene(Main.createMediaGuest());
+				if(Main.currentUser.equals(room.getAdmin()))
+					Main.primaryStage.setScene(Main.createMediaAdmin());
+				else
+					Main.primaryStage.setScene(Main.createMediaGuest());
 			}
 		});
 	}
