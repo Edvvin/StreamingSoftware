@@ -82,5 +82,10 @@ public class SubServerRMI implements SSRemote {
 	public ArrayList<Room> getRooms(){
 		return Main.ss.getRooms();
 	}
+	
+	@Override
+	public void newRoom(Room room, RoomState rs) {
+		Main.ss.newRoom(room, rs);
+	}
 
 }

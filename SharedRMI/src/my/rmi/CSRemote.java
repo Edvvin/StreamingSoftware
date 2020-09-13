@@ -3,6 +3,7 @@ package my.rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public interface CSRemote extends Remote{
 	public String login(String username, String password) throws RemoteException;
@@ -15,4 +16,5 @@ public interface CSRemote extends Remote{
 	public ArrayList<String> getRegisteredMoives() throws RemoteException;
 	public boolean createRoom(Room room) throws RemoteException;
 	boolean setRoomState(Room room, double time, RoomState.State state) throws RemoteException;
+	HashMap<Room, RoomState> getRooms() throws RemoteException;
 }

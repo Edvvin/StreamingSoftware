@@ -8,6 +8,7 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import my.rmi.*;
 import my.rmi.RoomState.State;
@@ -126,4 +127,10 @@ public class CentralServerRMI implements CSRemote{
 		Main.cs.setRoomState(room, time, state);
 		return false;
 	}
+	
+	@Override
+	public HashMap<Room, RoomState> getRooms(){
+		return Main.cs.getRooms();
+	}
+	
 }

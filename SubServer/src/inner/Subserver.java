@@ -322,4 +322,9 @@ public class Subserver {
 		});
 		return roomList;
 	}
+
+	public synchronized void newRoom(Room room, RoomState rs) {
+		// TODO Auto-generated method stub
+		rooms.putIfAbsent(room, rs);
+	}
 }

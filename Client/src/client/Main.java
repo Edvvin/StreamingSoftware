@@ -563,7 +563,7 @@ public class Main extends Application {
 		return new Scene(border, 800, 600);
 	}
 
-	public Scene createMediaGuest() {
+	public static Scene createMediaGuest() {
 		BorderPane border = new BorderPane();
 		HBox controls = new HBox();
 		Thread t = new Thread() {
