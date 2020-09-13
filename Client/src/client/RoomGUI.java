@@ -4,22 +4,29 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import my.rmi.Room;
 
 public class RoomGUI extends HBox {
 	private Button joinBtn;
 	private Label label;
-	public RoomGUI(String roomName) {
+	private Room room;
+	public RoomGUI(Room room) {
+		this.room = room;
 		joinBtn = new Button();
+		getChildren().add(joinBtn);
+		label = new Label();
+		label.setText(room.getRoomName());
+		getChildren().add(label);
 		joinBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				// TODO join room
+				Main.download(room.getMovie());
+				Main.currentRoom = room;
+				Main.primaryStage.setScene(Main.createMediaGuest());
 			}
 		});
-		getChildren().add(joinBtn);
-		label = new Label();
-		label.setText(roomName);
-		getChildren().add(label);
 	}
+	
+	
 	
 }
