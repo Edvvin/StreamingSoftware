@@ -36,6 +36,7 @@ public class Subserver {
 		this.users =  new Users();
 		movies = new HashMap<>();
 		rooms = new HashMap<>();
+		recieved = new HashMap<>();
 		this.dir = dir;
 		elf = new MovieElf();
 		Path indexPath = Path.of(dir, "index.txt");

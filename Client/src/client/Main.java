@@ -548,13 +548,20 @@ public class Main extends Application {
 		border.setBottom(controls);
 		try {
 			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-			player.seek(new Duration(rs.getTime()));
-			if(rs.getState() == RoomState.State.PAUSED) {
-				player.pause();
-			}
-			else {
-				player.play();
-			}
+			Status s = player.getStatus();
+			player.setOnReady(new Runnable() {
+				@Override
+				public void run() {
+					player.seek(Duration.millis(rs.getTime()));
+					if(rs.getState() == RoomState.State.PAUSED) {
+						player.pause();
+					}
+					else {
+						player.play();
+					}
+				}
+				
+			});
 		} catch (RemoteException e) {
 			// TODO do dis
 			e.printStackTrace();
