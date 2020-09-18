@@ -44,7 +44,7 @@ public class SubServerRMI implements SSRemote {
 	}
 	
 	@Override
-	public void uploadFinished(String name) {
+	public void uploadFinished(String name) throws NotSycnhedException, CSNotAvailException {
 		Main.ss.uploadFinished(name);
 	}
 	
@@ -59,12 +59,12 @@ public class SubServerRMI implements SSRemote {
 	}
 
 	@Override
-	public boolean createRoom(Room room) {
+	public boolean createRoom(Room room) throws NotSycnhedException, CSNotAvailException {
 		return Main.ss.createRoom(room);
 	}
 
 	@Override
-	public boolean setRoomState(Room room, double time, State state) throws RemoteException {
+	public boolean setRoomState(Room room, double time, State state) throws RemoteException, CSNotAvailException, NotSycnhedException {
 		return Main.ss.setRoomState(room,time, state);
 	}
 

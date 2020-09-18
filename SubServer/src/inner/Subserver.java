@@ -26,8 +26,10 @@ public class Subserver {
 	CSRemote csrmi;
 	Users users;
 	MovieElf elf;
+	public HelloElf helloelf;
 	HashMap<Room, RoomState> rooms;
 	HashMap<Room, ArrayList<Boolean>> recieved;
+	boolean reconnecting;
 	
 	public Subserver(int port, String dir, String cshost, int csport) {
 		this.port = port;
@@ -39,6 +41,7 @@ public class Subserver {
 		recieved = new HashMap<>();
 		this.dir = dir;
 		elf = new MovieElf();
+		helloelf = new HelloElf();
 		Path indexPath = Path.of(dir, "index.txt");
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(indexPath.toFile()));
@@ -112,7 +115,7 @@ public class Subserver {
 		fs.close();
 	}
 	
-	public synchronized void uploadFinished(String name) {
+	public synchronized void uploadFinished(String name) throws NotSycnhedException, CSNotAvailException {
 		Path filePath = Path.of(dir, name);
 		long numOfChunks = 0;
 		long size = filePath.toFile().length();
@@ -138,13 +141,18 @@ public class Subserver {
 			}
 		}
 		catch(IOException e) {
-			e.printStackTrace(); //TODO
+			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 		try {
 			csrmi.newMovie(port, name, filePath.toFile().length());
 		} catch (RemoteException e) {
-			// TODO 
-			e.printStackTrace();
+			reconnect();
+			throw new CSNotAvailException();
+		}
+		catch(NotSycnhedException e) {
+			reconnect();
+			throw e;
 		}
 	}
 	
@@ -175,10 +183,51 @@ public class Subserver {
 		} catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();//TODO RETRY
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 
+	}
+	
+	public synchronized void reconnect() {
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				synchronized(server.Main.ss) {
+					//TODO ako treba da se doda nesto za notificationz
+					//TODO da se pobrines za onaj thread HelloElf
+					while(true) {
+						Registry regCS;
+						try {
+							regCS = LocateRegistry.getRegistry(cshost, csport);
+							csrmi = (CSRemote) regCS.lookup("/csrmi");
+							String temp = InetAddress.getLocalHost().getHostAddress();
+							SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
+							if(sss == null) {
+								//TODO
+								assert(false);
+							}
+							users = sss.getUsers();
+							rooms = sss.getRooms();
+							server.Main.ss.elf.newMovie();
+							server.Main.ss.helloelf.notify();
+						} catch (RemoteException | NotBoundException e) {
+							try {
+								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
+							} catch (InterruptedException e1) {
+							}
+						} catch (UnknownHostException e) {
+							e.printStackTrace();
+							System.out.println(e.getMessage());
+						}
+					}
+				}
+			}
+		};
+		if(!reconnecting) {
+			reconnecting = true;
+			t.start();
+		}
 	}
 	
 	public void newUser(String username, String password) {
@@ -224,7 +273,8 @@ public class Subserver {
 				return true;
 			}
 			catch(IOException e) {
-				e.printStackTrace(); //TODO
+				e.printStackTrace();
+				System.out.println(e.getMessage());
 				return false;
 			}
 		}
@@ -264,22 +314,30 @@ public class Subserver {
 		elf.newMovie();
 	}
 
-	public boolean createRoom(Room room) {
+	public boolean createRoom(Room room) throws NotSycnhedException, CSNotAvailException {
 		try {
-			return csrmi.createRoom(room);
+			return csrmi.createRoom(port, room);
+		} catch (RemoteException e) {
+			reconnect();
+			throw new CSNotAvailException();
 		}
-		catch(RemoteException e) {
-			return false;
+		catch(NotSycnhedException e) {
+			reconnect();
+			throw e;
 		}
 	}
 
-	public boolean setRoomState(Room room, double time, State state) {
+	public boolean setRoomState(Room room, double time, State state) throws CSNotAvailException, NotSycnhedException {
 		try {
-			return csrmi.setRoomState(room, time, state);
+			return csrmi.setRoomState(port, room, time, state);
 		}
 		catch(RemoteException e) {
-			//TODO
-			return false;
+			reconnect();
+			throw new CSNotAvailException();
+		}
+		catch(NotSycnhedException e) {
+			reconnect();
+			throw e;
 		}
 	}
 
@@ -326,7 +384,7 @@ public class Subserver {
 	}
 
 	public synchronized void newRoom(Room room, RoomState rs) {
-		// TODO Auto-generated method stub
+		// TODO
 		rooms.putIfAbsent(room, rs);
 	}
 }

@@ -68,8 +68,10 @@ public class CentralServerRMI implements CSRemote{
 		return Main.cs.getUsers();
 	}
 	
-	public ArrayList<Order> getOrders(int ssport) throws RemoteException{
+	public ArrayList<Order> getOrders(int ssport) throws RemoteException, NotSycnhedException{
 		try {
+			String ssid = RemoteServer.getClientHost() + ":" + ssport;
+			Main.cs.checkSS(ssid);
 			return Main.cs.getOrders(RemoteServer.getClientHost(), ssport);
 		} catch (ServerNotActiveException e) {
 			// TODO Not sure how to deal with this
@@ -94,8 +96,10 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public boolean newMovie(int port, String name, long fileSize) throws RemoteException {
+	public boolean newMovie(int port, String name, long fileSize) throws RemoteException, NotSycnhedException {
 		try {
+			String ssid = RemoteServer.getClientHost() + ":" + port;
+			Main.cs.checkSS(ssid);
 			return Main.cs.newMovie(RemoteServer.getClientHost(), port, name, fileSize);
 		} catch (ServerNotActiveException e) {
 			// TODO Auto-generated catch block
@@ -105,11 +109,13 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public void registerOrders(int port, ArrayList<Order> orders) throws RemoteException {
+	public void registerOrders(int port, ArrayList<Order> orders) throws RemoteException, NotSycnhedException {
 		try {
+			String ssid = RemoteServer.getClientHost() + ":" + port;
+			Main.cs.checkSS(ssid);
 			Main.cs.registerOrders(RemoteServer.getClientHost(), port, orders);
 		} catch (ServerNotActiveException e) {
-			// TODO 
+			// TODO
 			e.printStackTrace();
 		}
 	}
@@ -118,12 +124,28 @@ public class CentralServerRMI implements CSRemote{
 	}
 
 	@Override
-	public boolean createRoom(Room room) throws RemoteException {
+	public boolean createRoom(int port, Room room) throws RemoteException, NotSycnhedException {
+		String ssid;
+		try {
+			ssid = RemoteServer.getClientHost() + ":" + port;
+			Main.cs.checkSS(ssid);
+		} catch (ServerNotActiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return Main.cs.createRoom(room);
 	}
 
 	@Override
-	public boolean setRoomState(Room room, double time, State state) throws RemoteException {
+	public boolean setRoomState(int port, Room room, double time, State state) throws RemoteException, NotSycnhedException{
+		String ssid;
+		try {
+			ssid = RemoteServer.getClientHost() + ":" + port;
+			Main.cs.checkSS(ssid);
+		} catch (ServerNotActiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Main.cs.setRoomState(room, time, state);
 		return false;
 	}
@@ -136,5 +158,16 @@ public class CentralServerRMI implements CSRemote{
 	@Override
 	public String complain(String user, ArrayList<String> tried) {
 		return Main.cs.complain(user, tried);
+	}
+
+	@Override
+	public void hello(int port) throws RemoteException {
+		try {
+			String ssid = RemoteServer.getClientHost() + ":" + port;
+			Main.cs.hello(ssid);
+		} catch (ServerNotActiveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

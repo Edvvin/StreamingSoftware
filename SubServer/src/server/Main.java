@@ -84,6 +84,7 @@ public class Main {
 			ss = new Subserver(ssport, dir, host, Integer.parseInt(port));
 			ss.connect();
 			ss.wakeElf();
+			ss.helloelf.start();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

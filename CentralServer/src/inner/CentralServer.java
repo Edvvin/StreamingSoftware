@@ -16,6 +16,7 @@ public class CentralServer {
 	HashMap<String, Long> fileSizes;
 	HashMap<Room, RoomState> rooms;
 	RoomElf elf;
+	SSElf sself;
 	int port;
 
 	public CentralServer(int port) {
@@ -27,6 +28,8 @@ public class CentralServer {
 		this.port = port;
 		elf = new RoomElf();
 		elf.start();
+		sself = new SSElf();
+		sself.start();
 	}
 	
 	public synchronized void registerSubserver(Subserver ss, ArrayList<Movie> wih) {
@@ -71,8 +74,7 @@ public class CentralServer {
 			try {
 				ss.getRMI().newUser(user.getUsername(), user.getPassword());
 			} catch (RemoteException e) {
-				// TODO no connection
-				e.printStackTrace();
+				removeSubserver(ss);
 			}
 		}
 		users.addUser(user.getUsername(), user.getPassword());
@@ -89,14 +91,33 @@ public class CentralServer {
 	}
 	
 	public synchronized void removeSubserver(Subserver ss) {
-		//TODO
-		// remove from list, reroute users, remove chunks, reroute notifications
 		ArrayList<User> users = ss.strip();
 		subs.remove(ss);
-		for(User u: users) {
-			//TODO registerUser(u);
+		chunks.forEach((key, value)->{
+			for(Subserver s : value) {
+				if(ss.toString().equals(s.toString())) {
+					value.remove(s);
+					break;
+				}
+			}
+		});
+		//TODO fileSizes possibly remove from here
+		if(subs.size() == 1) {
+			subs.get(0).setRegistered();
 		}
-		//TODO if only one left then it becomes registered
+		for(User u: users) {
+			int min = -1;
+			Subserver best = null;
+			for(Subserver s : subs) {
+				if((min == -1 || min > s.getNumOfUsers()) && s.isRegistered()) {
+					min = s.getNumOfUsers();
+					best = s;
+				}
+			}
+			if(best != null) {
+				best.addUser(u);
+			}
+		}
 		return;
 	}
 	
@@ -186,8 +207,7 @@ public class CentralServer {
 					try {
 						s.getRMI().newMovie();
 					} catch (RemoteException e) {
-						// TODO what nau
-						e.printStackTrace();
+						removeSubserver(s);
 					}
 				}
 			}
@@ -253,8 +273,7 @@ public class CentralServer {
 			try {
 				s.getRMI().newRoom(room, state);
 			} catch (RemoteException e) {
-				// TODO waaaaaas?
-				e.printStackTrace();
+				removeSubserver(s);
 			}
 		}
 		return true;
@@ -262,13 +281,17 @@ public class CentralServer {
 
 	public synchronized void setRoomState(Room room, double time, State state) {
 		rooms.get(room).setRoomState(time, state);
+		ArrayList<Subserver> toRem = new ArrayList<>();
 		for(Subserver s : subs) {
 			try {
 				s.getRMI().updateState(room, time, state);
 			} catch (RemoteException e) {
-				// TODO waaaaaas?
-				e.printStackTrace();
+				toRem.add(s);
 			}
+		}
+		
+		for(Subserver s : toRem) {
+			removeSubserver(s);
 		}
 	}
 
@@ -278,6 +301,8 @@ public class CentralServer {
 
 	public synchronized String complain(String user, ArrayList<String> tried) {
 		Subserver ssold = routeUser(new User(user, "123"));
+		if(ssold == null)
+			return "FAILED";
 		if(!tried.contains(ssold.toString()))
 			return ssold.toString();
 		ArrayList<Subserver> baggie = new ArrayList<>();
@@ -300,6 +325,25 @@ public class CentralServer {
 		Subserver ssnew = best;
 		ssnew.addUser(ssold.removeUser(user));
 		return ssnew.toString();
+	}
+
+	public synchronized void checkSS(String ssid) throws NotSycnhedException {
+		for(Subserver ss : subs) {
+			if(ss.toString().equals(ssid)) {
+				return;
+			}
+		}
+		throw new NotSycnhedException();
+	}
+
+	public synchronized void hello(String ssid) {
+		for(Subserver s : subs) {
+			if(s.toString().equals(ssid)) {
+				s.helloCnt = 0;
+				s.lastUpdate = System.currentTimeMillis();
+				return;
+			}
+		}
 	}
 	
 

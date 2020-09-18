@@ -123,7 +123,7 @@ public class Main extends Application {
 							primaryStage.setScene(Main.createChoiceScene());
 						}
 						catch(NotBoundException err) {
-							complain();
+							complain(true);
 						}
 					}
 					else {
@@ -231,8 +231,8 @@ public class Main extends Application {
 							}
 							ssrmi.uploadFinished(movie.getName());
 							break;
-						}catch(RemoteException e1){
-							if(!complain()) {
+						}catch(RemoteException | CSNotAvailException | NotSycnhedException e1){
+							if(!complain(true)) {
 								break;
 							}
 						}
@@ -260,7 +260,7 @@ public class Main extends Application {
 							primaryStage.setScene(Main.createRoomCreateScene(rooms, movies, users));
 							break;
 						} catch (RemoteException e1) {
-							if(!complain())
+							if(!complain(true))
 								break;
 						}
 					}
@@ -390,8 +390,8 @@ public class Main extends Application {
 						}
 						//TODO what if it actually creates the room
 						break;
-					} catch (RemoteException e1) {
-						if(!complain())
+					} catch (RemoteException | NotSycnhedException | CSNotAvailException e1) {
+						if(!complain(true))
 							break;
 					}
 				}
@@ -418,8 +418,8 @@ public class Main extends Application {
 						Main.currentRoom = room;
 						primaryStage.setScene(Main.createMediaAdmin());
 						break;
-					} catch (RemoteException e1) {
-						if(!complain())
+					} catch (RemoteException | NotSycnhedException | CSNotAvailException e1) {
+						if(!complain(true))
 							break;
 					}
 				}
@@ -509,8 +509,8 @@ public class Main extends Application {
 							state = RoomState.State.PAUSED;
 						try {
 							Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(), state);
-						} catch (RemoteException e) {
-							if(!complain())
+						} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
+							if(!complain(false))
 								interrupt();
 						}
 					}
@@ -531,8 +531,8 @@ public class Main extends Application {
 								RoomState.State.PLAYING);
 						player.play();
 						break;
-					} catch (RemoteException e) {
-						if(!complain()) {
+					} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
+						if(!complain(true)) {
 							break;
 						}
 					}
@@ -552,8 +552,8 @@ public class Main extends Application {
 						Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
 								RoomState.State.PAUSED);
 						break;
-					} catch (RemoteException e) {
-						if(!complain()) {
+					} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
+						if(!complain(true)) {
 							break;
 						}
 					}
@@ -576,8 +576,8 @@ public class Main extends Application {
 							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
 						player.seek(Duration.millis(newTime));
 						break;
-					} catch (RemoteException e) {
-						if(!complain()) {
+					} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
+						if(!complain(true)) {
 							break;
 						}
 					}
@@ -600,8 +600,8 @@ public class Main extends Application {
 							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
 						player.seek(Duration.millis(newTime));
 						break;
-					} catch (RemoteException e) {
-						if(!complain()) {
+					} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
+						if(!complain(true)) {
 							break;
 						}
 					}
@@ -651,7 +651,7 @@ public class Main extends Application {
 				});
 				break;
 			} catch (RemoteException e) {
-				if(!complain()) {
+				if(!complain(true)) {
 					break;
 				}
 			}
@@ -679,7 +679,7 @@ public class Main extends Application {
 								player.play();
 							}
 						} catch (RemoteException e) {
-							if(!complain())
+							if(!complain(false))
 								interrupt();
 						}
 					}
@@ -729,14 +729,14 @@ public class Main extends Application {
 				t.start();
 				break;
 			} catch (RemoteException e) {
-				if(!complain())
+				if(!complain(true))
 					break;
 			}
 		}
 		return new Scene(border, 800, 600);
 	}
 	
-	public static boolean complain() {
+	public static boolean complain(boolean showAlert) {
 		ArrayList<String> tried = new ArrayList<>();
 		if(currentSS != null)
 			tried.add(currentSS);
@@ -744,7 +744,8 @@ public class Main extends Application {
 			do {
 				String reply = Main.csrmi.complain(currentUser, tried);
 				if(reply.equals("FAILED")) {
-					deadCS();
+					if(showAlert)
+						deadCS();
 					return false;
 				}
 				try {
@@ -763,7 +764,8 @@ public class Main extends Application {
 			}while(true);
 		}
 		catch(RemoteException e) {
-			deadCS();
+			if(showAlert)
+				deadCS();
 			return false;
 		}
 	}

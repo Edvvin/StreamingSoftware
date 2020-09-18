@@ -18,11 +18,18 @@ public class MovieElf extends Thread {
 				ArrayList<Order> orders;
 				synchronized(this) {
 					while(true) {
-						orders =
-								Main.ss.csrmi.getOrders(Main.ss.port);
-						if(orders.size() > 0)
-							break;
-						wait();
+						try{
+							orders =
+									Main.ss.csrmi.getOrders(Main.ss.port);
+							if(orders.size() > 0)
+								break;
+							else
+								wait();
+						}
+						catch(NotSycnhedException | RemoteException e) {
+							Main.ss.reconnect();
+							wait();
+						}
 					}
 				}
 				ArrayList<Order> success = new ArrayList<>();
@@ -31,13 +38,15 @@ public class MovieElf extends Thread {
 					if(reply)
 						success.add(o);
 				}
-				Main.ss.csrmi.registerOrders(Main.ss.port, success);
+				try {
+					Main.ss.csrmi.registerOrders(Main.ss.port, success);
+				}
+				catch(NotSycnhedException | RemoteException e) {
+					Main.ss.reconnect();
+				}
 			}
 		}
 		catch(InterruptedException e) {
-		} catch (RemoteException e) {
-			// TODO neka konekcija nesto
-			e.printStackTrace();
 		}
 	}
 	

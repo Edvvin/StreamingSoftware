@@ -10,6 +10,8 @@ public class Subserver {
 	private SSRemote ss;
 	private boolean isRegistered;
 	private ArrayList<User> users;
+	int helloCnt = 0;
+	long lastUpdate;
 	
 	public Subserver(String host, int port, SSRemote ss) {
 		this.host = host;
@@ -17,6 +19,7 @@ public class Subserver {
 		this.ss = ss;
 		this.isRegistered = true;
 		this.users = new ArrayList<>();
+		this.lastUpdate = System.currentTimeMillis();
 	}
 	
 	public synchronized void addUser(User user) {
@@ -42,7 +45,7 @@ public class Subserver {
 	
 	public synchronized ArrayList<User> strip(){
 		ArrayList<User> tempUsers = users;
-		users = null;
+		users = new ArrayList<User>();
 		return tempUsers;
 	}
 	
