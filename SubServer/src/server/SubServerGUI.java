@@ -36,6 +36,7 @@ public class SubServerGUI extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				dispose();
+				System.exit(0);
 			}
 		});
 		add(button, BorderLayout.SOUTH);
@@ -44,6 +45,7 @@ public class SubServerGUI extends JFrame {
 			@Override
 			public void windowClosed(WindowEvent e) {
 				dispose();
+				System.exit(0);
 			}
 		});
 		

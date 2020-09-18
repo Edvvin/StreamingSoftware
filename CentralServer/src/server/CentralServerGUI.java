@@ -44,6 +44,7 @@ public class CentralServerGUI extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				dispose();
+				System.exit(0);
 			}
 		});
 		add(button, BorderLayout.SOUTH);
@@ -52,6 +53,7 @@ public class CentralServerGUI extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				dispose();
+				System.exit(0);
 			}
 		});
 		

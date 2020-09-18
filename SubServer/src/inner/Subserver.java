@@ -166,7 +166,6 @@ public class Subserver {
 			regCS = LocateRegistry.getRegistry(cshost, csport);
 			csrmi = (CSRemote) regCS.lookup("/csrmi");
 			String temp = InetAddress.getLocalHost().getHostAddress();
-			csrmi.ping();
 			SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
 			if(sss == null) {
 				//TODO

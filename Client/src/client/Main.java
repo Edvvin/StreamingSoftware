@@ -6,10 +6,13 @@ import java.nio.file.Path;
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import my.utils.*;
 
 import javafx.application.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
 import javafx.collections.*;
 import javafx.event.*;
 import javafx.geometry.*;
@@ -119,9 +122,8 @@ public class Main extends Application {
 							currentUser = log_uname.getText();
 							primaryStage.setScene(Main.createChoiceScene());
 						}
-						catch(RemoteException | NotBoundException err) {
-							//TODO complain
-							err.printStackTrace();
+						catch(NotBoundException err) {
+							complain();
 						}
 					}
 					else {
@@ -143,7 +145,6 @@ public class Main extends Application {
 					alert.setHeaderText("Log In Failed");
 					alert.setContentText("Server error");
 					alert.show();
-					System.out.print(err.getMessage());
 				}
 			}
 		});
@@ -230,6 +231,7 @@ public class Main extends Application {
 						ssrmi.uploadFinished(movie.getName());
 					}catch(RemoteException e1){
 						 //TODO
+
 						e1.printStackTrace();
 					}
 					catch(IOException e2) {
@@ -242,14 +244,23 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// WATCH HANDLE
+				ArrayList<String> movies;
+				Users users;
 				try {
-					ArrayList<String> movies = csrmi.getRegisteredMoives();
-					Users users = csrmi.getUsers();
-					ArrayList<Room> rooms = ssrmi.getRooms();
-					primaryStage.setScene(Main.createRoomCreateScene(rooms, movies, users));
+					movies = csrmi.getRegisteredMoives();
+					users = csrmi.getUsers();
+					while(true) {
+						try {
+							ArrayList<Room> rooms = ssrmi.getRooms();
+							primaryStage.setScene(Main.createRoomCreateScene(rooms, movies, users));
+							break;
+						} catch (RemoteException e1) {
+							if(!complain())
+								break;
+						}
+					}
 				} catch (RemoteException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					deadCS();
 				}
 			}
 		});
@@ -261,6 +272,7 @@ public class Main extends Application {
 				primaryStage.setScene(createLogRegScene());
 			}
 		});
+
 		choices.getChildren().add(upload);
 		choices.getChildren().add(watch);
 		choices.getChildren().add(logout);
@@ -331,23 +343,47 @@ public class Main extends Application {
 			public void handle(ActionEvent e) {
 				// CREATE ROOM HANDLE
 				String movie = movieChoice.getValue();
+				if(movie == null || movie.equals("")) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("No movie selected");
+					alert.show();
+					return;
+				}
 				TextInputDialog td = new TextInputDialog();
 				td.setHeaderText("Room Name");
 				td.setContentText("");
-				td.showAndWait();
+				Optional<String> result = td.showAndWait();
+				if(!result.isPresent() || result.get().isEmpty()) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("No room name provided");
+					alert.show();
+					return;
+				}
 				String roomName = td.getEditor().getText();
 				ArrayList<String> buddies = new ArrayList<>();
+				boolean hasBuddies = false;
 				for(Buddy b: buddyList.getItems()) {
 					if(b.isChecked()) {
 						buddies.add(b.getUsername());
+						hasBuddies = true;
 					}
 				}
+				if(!hasBuddies) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("No buddies selected");
+					alert.show();
+					return;
+				}
 				Room room = new Room(movie, currentUser, roomName, buddies);
-				try {
-					ssrmi.createRoom(room);
-				} catch (RemoteException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				while(true) {
+					try {
+						ssrmi.createRoom(room);
+						//TODO what if it actually creates the room
+						break;
+					} catch (RemoteException e1) {
+						if(!complain())
+							break;
+					}
 				}
 			}
 		});
@@ -357,14 +393,25 @@ public class Main extends Application {
 			public void handle(ActionEvent e) {
 				// ALONE HANDLE
 				String movie = movieChoice.getValue();
+				if(movie == null || movie.equals("")) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setHeaderText("No movie selected");
+					alert.show();
+					return;
+				}
 				download(movie);
-				Main.currentRoom = new Room(movie, currentUser);
-				try {
-					Main.ssrmi.createRoom(Main.currentRoom);
-					primaryStage.setScene(Main.createMediaAdmin());
-				} catch (RemoteException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				Room room = new Room(movie, currentUser);
+				while(true) {
+					try {
+						ssrmi.createRoom(room);
+						//TODO what if it actually creates the room
+						Main.currentRoom = room;
+						primaryStage.setScene(Main.createMediaAdmin());
+						break;
+					} catch (RemoteException e1) {
+						if(!complain())
+							break;
+					}
 				}
 			}
 		});
@@ -453,7 +500,8 @@ public class Main extends Application {
 						try {
 							Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(), state);
 						} catch (RemoteException e) {
-							// TODO wat?
+							if(!complain())
+								interrupt();
 						}
 					}
 				} catch (InterruptedException e) {
@@ -467,12 +515,17 @@ public class Main extends Application {
 				if(player.getStatus() == MediaPlayer.Status.PLAYING) {
 					return;
 				}
-				try {
-					Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
-							RoomState.State.PLAYING);
-					player.play();
-				} catch (RemoteException e) {
-					// TODO wat?
+				while(true) {
+					try {
+						Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
+								RoomState.State.PLAYING);
+						player.play();
+						break;
+					} catch (RemoteException e) {
+						if(!complain()) {
+							break;
+						}
+					}
 				}
 			}
 		});
@@ -483,12 +536,17 @@ public class Main extends Application {
 				if(player.getStatus() != MediaPlayer.Status.PLAYING) {
 					return;
 				}
-				try {
-					player.pause();
-					Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
-							RoomState.State.PAUSED);
-				} catch (RemoteException e) {
-					// TODO wat?
+				while(true) {
+					try {
+						player.pause();
+						Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(),
+								RoomState.State.PAUSED);
+						break;
+					} catch (RemoteException e) {
+						if(!complain()) {
+							break;
+						}
+					}
 				}
 			}
 		});
@@ -496,18 +554,23 @@ public class Main extends Application {
 		rewind.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				try {
-					double newTime = player.getCurrentTime().toMillis() - Consts.REWIND_DURATION;
-					if(newTime < 0) {
-						newTime = 0;
+				while(true) {
+					try {
+						double newTime = player.getCurrentTime().toMillis() - Consts.REWIND_DURATION;
+						if(newTime < 0) {
+							newTime = 0;
+						}
+						if(player.getStatus() == Status.PLAYING)
+							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
+						else
+							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
+						player.seek(Duration.millis(newTime));
+						break;
+					} catch (RemoteException e) {
+						if(!complain()) {
+							break;
+						}
 					}
-					if(player.getStatus() == Status.PLAYING)
-						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
-					else
-						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
-					player.seek(Duration.millis(newTime));
-				} catch (RemoteException e) {
-					// TODO wat?
 				}
 			}
 		});
@@ -515,18 +578,23 @@ public class Main extends Application {
 		fastForward.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				try {
-					double newTime = player.getCurrentTime().toMillis() + 15000;
-					if(newTime > player.getMedia().getDuration().toMillis()) {
-						newTime = player.getMedia().getDuration().toMillis();
+				while(true) {
+					try {
+						double newTime = player.getCurrentTime().toMillis() + 15000;
+						if(newTime > player.getMedia().getDuration().toMillis()) {
+							newTime = player.getMedia().getDuration().toMillis();
+						}
+						if(player.getStatus() == Status.PLAYING)
+							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
+						else
+							Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
+						player.seek(Duration.millis(newTime));
+						break;
+					} catch (RemoteException e) {
+						if(!complain()) {
+							break;
+						}
 					}
-					if(player.getStatus() == Status.PLAYING)
-						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PLAYING);
-					else
-						Main.ssrmi.setRoomState(currentRoom, newTime, RoomState.State.PAUSED);
-					player.seek(Duration.millis(newTime));
-				} catch (RemoteException e) {
-					// TODO wat?
 				}
 			}
 		});
@@ -548,26 +616,35 @@ public class Main extends Application {
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
 		playerView = new MediaView(player);
+		DoubleProperty mvw = playerView.fitWidthProperty();
+		DoubleProperty mvh = playerView.fitHeightProperty();
+		mvw.bind(Bindings.selectDouble(playerView.sceneProperty(), "width"));
+		mvh.bind(Bindings.selectDouble(playerView.sceneProperty(), "height"));
+		playerView.setPreserveRatio(true);
 		border.setCenter(playerView);
 		border.setBottom(controls);
-		try {
-			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-			player.setOnReady(new Runnable() {
-				@Override
-				public void run() {
-					player.seek(Duration.millis(rs.getTime()));
-					if(rs.getState() == RoomState.State.PAUSED) {
-						player.pause();
+		while(true) {
+			try {
+				RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
+				player.setOnReady(new Runnable() {
+					@Override
+					public void run() {
+						player.seek(Duration.millis(rs.getTime()));
+						if(rs.getState() == RoomState.State.PAUSED) {
+							player.pause();
+						}
+						else {
+							player.play();
+						}
 					}
-					else {
-						player.play();
-					}
+					
+				});
+				break;
+			} catch (RemoteException e) {
+				if(!complain()) {
+					break;
 				}
-				
-			});
-		} catch (RemoteException e) {
-			// TODO do dis
-			e.printStackTrace();
+			}
 		}
 		t.start();
 		return new Scene(border, 800, 600);
@@ -592,7 +669,8 @@ public class Main extends Application {
 								player.play();
 							}
 						} catch (RemoteException e) {
-							// TODO nani?
+							if(!complain())
+								interrupt();
 						}
 					}
 				} catch (InterruptedException e) {
@@ -616,38 +694,48 @@ public class Main extends Application {
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
 		playerView = new MediaView(player);
+		DoubleProperty mvw = playerView.fitWidthProperty();
+		DoubleProperty mvh = playerView.fitHeightProperty();
+		mvw.bind(Bindings.selectDouble(playerView.sceneProperty(), "width"));
+		mvh.bind(Bindings.selectDouble(playerView.sceneProperty(), "height"));
+		playerView.setPreserveRatio(true);
 		border.setCenter(playerView);
 		border.setBottom(controls);
-		try {
-			RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-			player.setOnReady(new Runnable() {
-				@Override
-				public void run() {
-					player.seek(Duration.millis(rs.getTime()));
-					if(rs.getState() == RoomState.State.PAUSED) {
-						player.pause();
+		while(true) {
+			try {
+				RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
+				player.setOnReady(new Runnable() {
+					@Override
+					public void run() {
+						player.seek(Duration.millis(rs.getTime()));
+						if(rs.getState() == RoomState.State.PAUSED) {
+							player.pause();
+						}
+						else {
+							player.play();
+						}
 					}
-					else {
-						player.play();
-					}
-				}
-			});
-		} catch (RemoteException e) {
-			// TODO do dis
-			e.printStackTrace();
+				});
+				t.start();
+				break;
+			} catch (RemoteException e) {
+				if(!complain())
+					break;
+			}
 		}
-		t.start();
 		return new Scene(border, 800, 600);
 	}
 	
-	public void complain() {
+	public static boolean complain() {
 		ArrayList<String> tried = new ArrayList<>();
-		tried.add(currentSS);
+		if(currentSS != null)
+			tried.add(currentSS);
 		try {
 			do {
 				String reply = Main.csrmi.complain(currentUser, tried);
 				if(reply.equals("FAILED")) {
 					deadCS();
+					return false;
 				}
 				try {
 					String[] parts = reply.split(":");
@@ -657,7 +745,7 @@ public class Main extends Application {
 					ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 					currentSS = reply;
 					ssrmi.ping();
-					return;
+					return true;
 				}
 				catch(RemoteException | NotBoundException e) {
 					tried.add(reply);
@@ -666,17 +754,20 @@ public class Main extends Application {
 		}
 		catch(RemoteException e) {
 			deadCS();
+			return false;
 		}
 	}
 	
-	public void deadCS() {
-		//TODO
+	public static void deadCS() {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setHeaderText("Servers Unavailable");
+		alert.show();
+		primaryStage.setScene(createLogRegScene());
 	}
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
-		//primaryStage.setScene(createChoiceScene());
 		primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
