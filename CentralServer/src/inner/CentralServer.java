@@ -246,6 +246,8 @@ public class CentralServer {
 	
 	public synchronized boolean createRoom(Room room) {
 		RoomState state = new RoomState(0, RoomState.State.PAUSED);
+		if(rooms.containsKey(room))
+			return false;
 		rooms.putIfAbsent(room, state);
 		for(Subserver s : subs) {
 			try {

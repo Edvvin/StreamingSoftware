@@ -216,26 +216,31 @@ public class Main extends Application {
 				FileChooser fc = new FileChooser();
 				File movie = fc.showOpenDialog(primaryStage);
 				if(movie != null) {
-					try{
-						FileInputStream in = new FileInputStream(movie);
-						int ind = 0;
-						Chunk c = new Chunk(ind);
-						int mylen = in.read(c.getBytes());
-						boolean first = true;
-						while(mylen>0){
-							c.pack(mylen);
-							ssrmi.upload(movie.getName(), c, first);
-							c = new Chunk(++ind);
-							mylen = in.read(c.getBytes());
+					while(true) {
+						try{
+							FileInputStream in = new FileInputStream(movie);
+							int ind = 0;
+							Chunk c = new Chunk(ind);
+							int mylen = in.read(c.getBytes());
+							boolean first = true;
+							while(mylen>0){
+								c.pack(mylen);
+								ssrmi.upload(movie.getName(), c, first);
+								c = new Chunk(++ind);
+								mylen = in.read(c.getBytes());
+							}
+							ssrmi.uploadFinished(movie.getName());
+							break;
+						}catch(RemoteException e1){
+							if(!complain()) {
+								break;
+							}
 						}
-						ssrmi.uploadFinished(movie.getName());
-					}catch(RemoteException e1){
-						 //TODO
-
-						e1.printStackTrace();
-					}
-					catch(IOException e2) {
-						e2.printStackTrace();
+						catch(IOException e2) {
+							e2.printStackTrace();
+							System.out.println(e2.getMessage());
+							break;
+						}
 					}
 				}
 			}
@@ -377,7 +382,12 @@ public class Main extends Application {
 				Room room = new Room(movie, currentUser, roomName, buddies);
 				while(true) {
 					try {
-						ssrmi.createRoom(room);
+						if(!ssrmi.createRoom(room)){
+							Alert alert = new Alert(AlertType.ERROR);
+							alert.setHeaderText("Room already exists");
+							alert.show();
+							return;
+						}
 						//TODO what if it actually creates the room
 						break;
 					} catch (RemoteException e1) {
