@@ -24,25 +24,7 @@ public class CentralServerRMI implements CSRemote{
 
 	@Override
 	public String login(String username, String password) throws RemoteException {
-		String session = "FAILED";
-		User u = new User(username, password);
-		if(!Main.cs.getUsers().exists(u))
-			return "INVALID";
-		Subserver ss = Main.cs.routeUser(u);//check if in users
-		if(ss == null) {
-			return "FAILED";
-		}
-		SSRemote ssrmi = ss.getRMI();
-		if(ssrmi == null) {
-			return "FAILED"; // TODO
-		}
-		try {
-			session = ssrmi.login(username, password);
-		}
-		catch(RemoteException e) {
-			Main.cs.removeSubserver(ss);
-		}
-		return session;
+		return Main.cs.login(username, password);
 	}
 	
 	@Override 

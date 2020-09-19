@@ -32,6 +32,28 @@ public class CentralServer {
 		sself.start();
 	}
 	
+	public synchronized String login(String username, String password) {
+		String session = "FAILED";
+		User u = new User(username, password);
+		if(!getUsers().exists(u))
+			return "INVALID";
+		Subserver ss = routeUser(u);//check if in users
+		if(ss == null) {
+			return "FAILED";
+		}
+		SSRemote ssrmi = ss.getRMI();
+		if(ssrmi == null) {
+			return "FAILED"; // TODO
+		}
+		try {
+			session = ssrmi.login(username, password);
+		}
+		catch(RemoteException e) {
+			removeSubserver(ss);
+		}
+		return session;
+	}
+	
 	public synchronized void registerSubserver(Subserver ss, ArrayList<Movie> wih) {
 		for(Movie m : wih) {
 			for(int chunk : m.getChunks()) {
@@ -70,12 +92,16 @@ public class CentralServer {
 		else {
 			throw new NoSubserverException();
 		}
+		ArrayList<Subserver> toRem = new ArrayList<>();
 		for(Subserver ss: subs) {
 			try {
 				ss.getRMI().newUser(user.getUsername(), user.getPassword());
 			} catch (RemoteException e) {
-				removeSubserver(ss);
+				toRem.add(ss);
 			}
+		}
+		for(Subserver ss: toRem) {
+			removeSubserver(ss);
 		}
 		users.addUser(user.getUsername(), user.getPassword());
 		return best;
@@ -203,12 +229,17 @@ public class CentralServer {
 					chunks.put(chid,templist);
 					fileSizes.putIfAbsent(name, fileSize);
 				}
+				ArrayList<Subserver> toRem = new ArrayList<>();
 				for(Subserver s: subs) {
 					try {
 						s.getRMI().newMovie();
 					} catch (RemoteException e) {
-						removeSubserver(s);
+						toRem.add(s);
 					}
+				}
+				
+				for(Subserver s : toRem) {
+					removeSubserver(s);
 				}
 			}
 		}
@@ -269,12 +300,17 @@ public class CentralServer {
 		if(rooms.containsKey(room))
 			return false;
 		rooms.putIfAbsent(room, state);
+		ArrayList<Subserver> toRem = new ArrayList<>();
 		for(Subserver s : subs) {
 			try {
 				s.getRMI().newRoom(room, state);
 			} catch (RemoteException e) {
-				removeSubserver(s);
+				toRem.add(s);
 			}
+		}
+		
+		for(Subserver s : toRem) {
+			removeSubserver(s);
 		}
 		return true;
 	}

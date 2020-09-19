@@ -1,5 +1,7 @@
 package inner;
 
+import java.util.ArrayList;
+
 import my.utils.Consts;
 import server.*;
 
@@ -15,6 +17,7 @@ public class SSElf extends Thread {
 			while(!interrupted()) {
 				Thread.sleep(2000);
 				synchronized(Main.cs) {
+					ArrayList<Subserver> toRem = new ArrayList<>();
 					for(Subserver s : Main.cs.subs) {
 						if(s.helloCnt == 0) {
 							if(System.currentTimeMillis() - s.lastUpdate > Consts.Y) {
@@ -28,9 +31,12 @@ public class SSElf extends Thread {
 						}
 						else {
 							if(System.currentTimeMillis() - s.lastUpdate > 2*Consts.Y) {
-								Main.cs.removeSubserver(s);
+								toRem.add(s);
 							}
 						}
+					}
+					for(Subserver s : toRem) {
+						Main.cs.removeSubserver(s);
 					}
 				}
 			}

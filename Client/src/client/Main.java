@@ -586,6 +586,7 @@ public class Main extends Application {
 		});
 		Button fastForward = new Button(">>");
 		fastForward.setOnAction(new EventHandler<ActionEvent>() {
+			//TODO why does it block
 			@Override
 			public void handle(ActionEvent arg0) {
 				while(true) {
@@ -620,11 +621,14 @@ public class Main extends Application {
 				primaryStage.setScene(createChoiceScene());
 			}
 		});
-		controls.getChildren().addAll(back, rewind, play, pause, fastForward);
+		
+		Label currentTimeLabel = new Label();
+		controls.getChildren().addAll(back, rewind, play, pause, fastForward, currentTimeLabel);
 		
 		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
+		currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
 		playerView = new MediaView(player);
 		DoubleProperty mvw = playerView.fitWidthProperty();
 		DoubleProperty mvh = playerView.fitHeightProperty();
