@@ -21,7 +21,7 @@ public class HelloElf extends Thread {
 						Main.ss.csrmi.hello(Main.ss.port);
 					} catch (RemoteException e) {
 						Main.ss.reconnect();
-						wait();
+						Main.ss.wait();
 					}
 				}
 			}

@@ -703,10 +703,12 @@ public class Main extends Application {
 				primaryStage.setScene(createChoiceScene());
 			}
 		});
-		controls.getChildren().add(back);
+		Label currentTimeLabel = new Label();
+		controls.getChildren().addAll(back, currentTimeLabel);
 		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
 		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
+		currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
 		playerView = new MediaView(player);
 		DoubleProperty mvw = playerView.fitWidthProperty();
 		DoubleProperty mvh = playerView.fitHeightProperty();

@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.util.*;
 import my.utils.*;
 import server.CentralServerRMI;
+import server.Main;
 
 public class CentralServer {
 
@@ -35,10 +36,14 @@ public class CentralServer {
 	public synchronized String login(String username, String password) {
 		String session = "FAILED";
 		User u = new User(username, password);
-		if(!getUsers().exists(u))
+		Main.logger.log("User: " + username + " attempting to log in");
+		if(!getUsers().exists(u)) {
+			Main.logger.log("User: " + username + " already exists");
 			return "INVALID";
-		Subserver ss = routeUser(u);//check if in users
+		}
+		Subserver ss = routeUser(u);
 		if(ss == null) {
+			Main.logger.log("User: "+ username + " log in failed, no subs available");
 			return "FAILED";
 		}
 		SSRemote ssrmi = ss.getRMI();
@@ -47,6 +52,7 @@ public class CentralServer {
 		}
 		try {
 			session = ssrmi.login(username, password);
+			Main.logger.log("User: " + username + "login subs reply: " + session);
 		}
 		catch(RemoteException e) {
 			removeSubserver(ss);
@@ -73,6 +79,7 @@ public class CentralServer {
 		if(subs.size() == 0)
 			ss.setRegistered();
 		subs.add(ss);
+		Main.logger.log("Subserver " + ss.toString() + " added.");
 	}
 
 	public synchronized Subserver registerUser(User user) throws UserExistsException, NoSubserverException {
@@ -90,6 +97,7 @@ public class CentralServer {
 			best.addUser(user);
 		}
 		else {
+			Main.logger.log("User: " + user.getUsername() + "register failed no sub avail");
 			throw new NoSubserverException();
 		}
 		ArrayList<Subserver> toRem = new ArrayList<>();
@@ -104,6 +112,7 @@ public class CentralServer {
 			removeSubserver(ss);
 		}
 		users.addUser(user.getUsername(), user.getPassword());
+		Main.logger.log("User: " + user.getUsername() + " registered");
 		return best;
 	}
 	
@@ -144,6 +153,7 @@ public class CentralServer {
 				best.addUser(u);
 			}
 		}
+		Main.logger.log("Subserver: " + ss.toString() + " lost connection");
 		return;
 	}
 	
@@ -209,11 +219,16 @@ public class CentralServer {
 
 	public synchronized boolean newMovie(String sshost, int ssport, String name, long fileSize) {
 		long numOfChunks;
+		Main.logger.log("Adding movie: " + name);
 		if(fileSize % Chunk.CHUNK_SIZE == 0) {
 			numOfChunks = fileSize / Chunk.CHUNK_SIZE;
 		}
 		else {
 			numOfChunks = fileSize / Chunk.CHUNK_SIZE + 1;
+		}
+		if(fileSizes.containsKey(name)) {
+			Main.logger.log("Movie: " + name + " already exists");
+			return false;
 		}
 		for(Subserver ss: subs) {
 			if(ss.getHost().equals(sshost) && ss.getPort() == ssport) {
@@ -297,8 +312,10 @@ public class CentralServer {
 	
 	public synchronized boolean createRoom(Room room) {
 		RoomState state = new RoomState(0, RoomState.State.PAUSED);
-		if(rooms.containsKey(room))
+		if(rooms.containsKey(room)) {
+			Main.logger.log("Failed to create room: " + room.getRoomName() + " already exists");
 			return false;
+		}
 		rooms.putIfAbsent(room, state);
 		ArrayList<Subserver> toRem = new ArrayList<>();
 		for(Subserver s : subs) {
@@ -312,6 +329,7 @@ public class CentralServer {
 		for(Subserver s : toRem) {
 			removeSubserver(s);
 		}
+		Main.logger.log("Room " + room.getRoomName() + "succesfully created");
 		return true;
 	}
 

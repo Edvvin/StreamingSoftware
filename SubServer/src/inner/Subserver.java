@@ -9,8 +9,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.RemoteServer;
 import java.rmi.*;
 import java.util.*;
-
-import com.sun.tools.javac.Main;
+import server.Main;
 
 import my.utils.*;
 
@@ -174,6 +173,7 @@ public class Subserver {
 			regCS = LocateRegistry.getRegistry(cshost, csport);
 			csrmi = (CSRemote) regCS.lookup("/csrmi");
 			String temp = InetAddress.getLocalHost().getHostAddress();
+			Main.logger.log("Connecting to: " + cshost + ":" + csport);
 			SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
 			if(sss == null) {
 				//TODO
@@ -181,8 +181,11 @@ public class Subserver {
 			users = sss.getUsers();
 			rooms = sss.getRooms();
 		} catch (RemoteException | NotBoundException e) {
+			Main.logger.log("Failed to connect");
 			e.printStackTrace();//TODO RETRY
+			System.out.println(e.getMessage());
 		} catch (UnknownHostException e) {
+			Main.logger.log("Failed to connect.");
 			e.printStackTrace();
 			System.out.println(e.getMessage());
 		}
@@ -211,14 +214,19 @@ public class Subserver {
 							rooms = sss.getRooms();
 							server.Main.ss.elf.newMovie();
 							server.Main.ss.helloelf.notify();
+							break;
 						} catch (RemoteException | NotBoundException e) {
 							try {
 								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
+								Main.logger.log("Trying to reconnect");
 							} catch (InterruptedException e1) {
 							}
 						} catch (UnknownHostException e) {
-							e.printStackTrace();
-							System.out.println(e.getMessage());
+							try {
+								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
+								Main.logger.log("Trying to reconnect");
+							} catch (InterruptedException e1) {
+							}
 						}
 					}
 				}
@@ -231,6 +239,7 @@ public class Subserver {
 	}
 	
 	public void newUser(String username, String password) {
+		Main.logger.log("New user: " + username);
 		users.addUser(username, password);
 	}
 	
@@ -316,6 +325,7 @@ public class Subserver {
 
 	public boolean createRoom(Room room) throws NotSycnhedException, CSNotAvailException {
 		try {
+			Main.logger.log("Creating room: " + room.getRoomName());
 			return csrmi.createRoom(port, room);
 		} catch (RemoteException e) {
 			reconnect();
@@ -385,6 +395,7 @@ public class Subserver {
 
 	public synchronized void newRoom(Room room, RoomState rs) {
 		// TODO
+		Main.logger.log("New Room synched: " + room.getRoomName());
 		rooms.putIfAbsent(room, rs);
 	}
 }
