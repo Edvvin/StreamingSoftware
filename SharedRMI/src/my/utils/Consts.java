@@ -7,4 +7,5 @@ public class Consts {
 	public static final long REWIND_DURATION = 15000;
 	public static final long RECONNECT_SLEEP_TIME = 4000;
 	public static final int Y = 5000;
+	public static final long CLIENT_ELF_CYCLE = 5000;
 }

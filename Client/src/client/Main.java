@@ -54,6 +54,9 @@ public class Main extends Application {
 	public static String currentSS = null;
 	public static Stage notiStage = null;
 	public static TextArea notiText = null;
+	public static ArrayList<Room> rooms;
+	public static ObservableList<RoomGUI> roomItems;
+	public static ClientElf elf;
 
 	private static Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -123,6 +126,20 @@ public class Main extends Application {
 							currentSS = reply;
 							currentUser = log_uname.getText();
 							notiStage = Main.createNotificationStage();
+							rooms = ssrmi.getRooms();
+							roomItems =
+									 FXCollections.observableArrayList();
+							for(Room r: rooms) {
+								if(!r.isPrivate())
+									if(r.getBuddies().contains(currentUser) || r.getAdmin().equals(currentUser)) {
+										roomItems.add(new RoomGUI(r));
+										if(!r.getAdmin().equals(Main.currentUser)) {
+											Main.notiText.appendText("New Room: " + r.getRoomName() + "\n");
+										}
+									}
+							}
+							elf = new ClientElf();
+							elf.start();
 							primaryStage.setScene(Main.createChoiceScene());
 						}
 						catch(NotBoundException err) {
@@ -257,16 +274,7 @@ public class Main extends Application {
 				try {
 					movies = csrmi.getRegisteredMoives();
 					users = csrmi.getUsers();
-					while(true) {
-						try {
-							ArrayList<Room> rooms = ssrmi.getRooms();
-							primaryStage.setScene(Main.createRoomCreateScene(rooms, movies, users));
-							break;
-						} catch (RemoteException e1) {
-							if(!complain(true))
-								break;
-						}
-					}
+					primaryStage.setScene(Main.createRoomCreateScene(movies, users));
 				} catch (RemoteException e1) {
 					deadCS();
 				}
@@ -278,7 +286,7 @@ public class Main extends Application {
 				// LOGOUT HANDLE
 				currentUser = null;
 				notiStage.close();
-				//TODO turn off clientElf
+				elf.interrupt();
 				notiStage = null;
 				primaryStage.setScene(createLogRegScene());
 			}
@@ -326,7 +334,7 @@ public class Main extends Application {
 		return stage;
 	}
 	
-	private static Scene createRoomCreateScene(ArrayList<Room> rooms, ArrayList<String> movies, Users users) {
+	private static Scene createRoomCreateScene(ArrayList<String> movies, Users users) {
 		BorderPane border = new BorderPane();
 		VBox top = new VBox();
 		top.setAlignment(Pos.CENTER);
@@ -458,13 +466,6 @@ public class Main extends Application {
         buddyList = new ListView<>(items);
         Label roomLabel = new Label("Pick a room to join: ");
 		roomLabel.setFont(new Font(18));
-        ObservableList<RoomGUI> roomItems =
-        		 FXCollections.observableArrayList();
-        for(Room r: rooms) {
-        	if(!r.isPrivate())
-				if(r.getBuddies().contains(currentUser) || r.getAdmin().equals(currentUser))
-					roomItems.add(new RoomGUI(r));
-        }
         ListView<RoomGUI> roomList = new ListView<>(roomItems);
 
 
@@ -688,6 +689,12 @@ public class Main extends Application {
 						Thread.sleep(Consts.GUEST_ROOM_UPDATE);
 						try {
 							RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, Main.currentUser, false);
+							if(Math.abs(player.getCurrentTime().toMillis() - rs.getTime()) < 1500.0 
+									&& ((rs.getState() == RoomState.State.PAUSED 
+										&& player.getStatus() != MediaPlayer.Status.PLAYING)
+										|| (rs.getState() == RoomState.State.PLAYING 
+										&& player.getStatus() == MediaPlayer.Status.PLAYING)))
+								continue;
 							player.seek(new Duration(rs.getTime()));
 							if(rs.getState() == RoomState.State.PAUSED) {
 								player.pause();
@@ -755,7 +762,7 @@ public class Main extends Application {
 		return new Scene(border, 800, 600);
 	}
 	
-	public static boolean complain(boolean showAlert) {
+	public static synchronized boolean complain(boolean showAlert) {
 		ArrayList<String> tried = new ArrayList<>();
 		if(currentSS != null)
 			tried.add(currentSS);
@@ -804,7 +811,7 @@ public class Main extends Application {
 			public void handle(WindowEvent e) {
 				if(notiStage != null) {
 					notiStage.close();
-					//TODO stop ClientElf
+					elf.interrupt();
 				}
 			}
 		});

@@ -18,6 +18,7 @@ public class CentralServer {
 	HashMap<Room, RoomState> rooms;
 	RoomElf elf;
 	SSElf sself;
+	HashMap<Room, ArrayList<Boolean>> recievedNotif;
 	int port;
 
 	public CentralServer(int port) {
