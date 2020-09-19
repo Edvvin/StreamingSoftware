@@ -8,17 +8,15 @@ public class ClientElf extends Thread {
 		
 	}
 	
-	/*
 	@Override
 	public void run() {
 		while(!interrupted()) {
-			try {
-				StatusUpdate su = Main.ssrmi.statusUpdate();
-			}
-			catch(RemoteException e) {
+			//try {
+				//StatusUpdate su = Main.ssrmi.getNotifications();
+			//}
+			//catch(RemoteException e) {
 				
-			}
+			//}
 		}
 	}
-	*/
 }

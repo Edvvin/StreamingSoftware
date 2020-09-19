@@ -52,6 +52,8 @@ public class Main extends Application {
 	public static MediaView playerView = null;
 	public static Room currentRoom = null;
 	public static String currentSS = null;
+	public static Stage notiStage = null;
+	public static TextArea notiText = null;
 
 	private static Scene createLogRegScene() {
 		VBox login = new VBox();
@@ -120,6 +122,7 @@ public class Main extends Application {
 							ssrmi = (SSRemote) regSS.lookup("/ssrmi");
 							currentSS = reply;
 							currentUser = log_uname.getText();
+							notiStage = Main.createNotificationStage();
 							primaryStage.setScene(Main.createChoiceScene());
 						}
 						catch(NotBoundException err) {
@@ -274,6 +277,9 @@ public class Main extends Application {
 			public void handle(ActionEvent e) {
 				// LOGOUT HANDLE
 				currentUser = null;
+				notiStage.close();
+				//TODO turn off clientElf
+				notiStage = null;
 				primaryStage.setScene(createLogRegScene());
 			}
 		});
@@ -294,22 +300,29 @@ public class Main extends Application {
 		return new Scene(box,800,600);
 	}
 	
-	private Stage createNotificationStage() {
+	public static Stage createNotificationStage() {
 		ScrollPane pane = new ScrollPane();
-		TextArea text = new TextArea();
-		text.maxWidthProperty().bind(pane.widthProperty());
-		text.minWidthProperty().bind(pane.widthProperty());
-		text.maxHeightProperty().bind(pane.heightProperty());
-		text.minHeightProperty().bind(pane.heightProperty());
-		text.setWrapText(true);
-		text.setEditable(false);
-		text.setFont(new Font(15));
+		notiText = new TextArea();
+		notiText.maxWidthProperty().bind(pane.widthProperty());
+		notiText.minWidthProperty().bind(pane.widthProperty());
+		notiText.maxHeightProperty().bind(pane.heightProperty());
+		notiText.minHeightProperty().bind(pane.heightProperty());
+		notiText.setWrapText(true);
+		notiText.setEditable(false);
+		notiText.setFont(new Font(15));
 		pane.setHbarPolicy(ScrollBarPolicy.NEVER);
 		pane.setPadding(new Insets(0,5,0,0));
-		pane.setContent(text);
+		pane.setContent(notiText);
 		Scene scene = new Scene(pane, 300, 600);
 		Stage stage = new Stage();
 		stage.setScene(scene);
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent e) {
+				e.consume();
+			}
+		});
+		stage.show();
 		return stage;
 	}
 	
@@ -786,6 +799,15 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		Main.primaryStage = primaryStage;
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent e) {
+				if(notiStage != null) {
+					notiStage.close();
+					//TODO stop ClientElf
+				}
+			}
+		});
 		primaryStage.setScene(createLogRegScene());
 		primaryStage.show();
 	}
