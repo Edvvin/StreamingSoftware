@@ -25,12 +25,13 @@ public class ClientElf extends Thread {
 							&& ((r.isPrivate()?false:r.getBuddies().contains(Main.currentUser))
 									|| r.getAdmin().equals(Main.currentUser))) {
 							Main.rooms.add(r);
-							Platform.runLater(new Runnable() {
-								@Override
-								public void run() {
-									Main.roomItems.add(new RoomGUI(r));
-								}
-							});
+							if(!r.isPrivate())
+								Platform.runLater(new Runnable() {
+									@Override
+									public void run() {
+										Main.roomItems.add(new RoomGUI(r));
+									}
+								});
 							if(!r.getAdmin().equals(Main.currentUser)) {
 								Main.notiText.appendText("New Room: " + r.getRoomName() + "\n");
 							}
