@@ -27,7 +27,6 @@ public class RoomElf extends Thread {
 				}
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 }

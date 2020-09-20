@@ -41,7 +41,6 @@ public class SSElf extends Thread {
 				}
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 }

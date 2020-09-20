@@ -26,6 +26,7 @@ public class Subserver {
 	Users users;
 	MovieElf elf;
 	public HelloElf helloelf;
+	Thread reconnectElf;
 	HashMap<Room, RoomState> rooms;
 	HashMap<Room, ArrayList<Boolean>> recieved;
 	boolean reconnecting;
@@ -193,48 +194,49 @@ public class Subserver {
 	}
 	
 	public synchronized void reconnect() {
-		Thread t = new Thread() {
+		 reconnectElf = new Thread() {
 			@Override
 			public void run() {
 				synchronized(server.Main.ss) {
 					//TODO ako treba da se doda nesto za notificationz
 					//TODO da se pobrines za onaj thread HelloElf
-					while(true) {
-						Registry regCS;
-						try {
-							regCS = LocateRegistry.getRegistry(cshost, csport);
-							csrmi = (CSRemote) regCS.lookup("/csrmi");
-							String temp = InetAddress.getLocalHost().getHostAddress();
-							SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
-							if(sss == null) {
-								//TODO
-								assert(false);
-							}
-							users = sss.getUsers();
-							rooms = sss.getRooms();
-							server.Main.ss.elf.newMovie();
-							server.Main.ss.helloelf.notify();
-							break;
-						} catch (RemoteException | NotBoundException e) {
+					try {
+						while(!interrupted()) {
+							Registry regCS;
 							try {
+								regCS = LocateRegistry.getRegistry(cshost, csport);
+								csrmi = (CSRemote) regCS.lookup("/csrmi");
+								String temp = InetAddress.getLocalHost().getHostAddress();
+								SubServerState sss = csrmi.connectToCS(temp, port, toArrayList());
+								if(sss == null) {
+									//TODO
+									assert(false);
+								}
+								users = sss.getUsers();
+								rooms = sss.getRooms();
+								server.Main.ss.elf.newMovie();
+								server.Main.ss.helloelf.notify();
+								break;
+							} catch (RemoteException | NotBoundException e) {
+								try {
+									Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
+									Main.logger.log("Trying to reconnect");
+								} catch (InterruptedException e1) {
+								}
+							} catch (UnknownHostException e) {
 								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
 								Main.logger.log("Trying to reconnect");
-							} catch (InterruptedException e1) {
-							}
-						} catch (UnknownHostException e) {
-							try {
-								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
-								Main.logger.log("Trying to reconnect");
-							} catch (InterruptedException e1) {
 							}
 						}
+					}
+					catch (InterruptedException e1) {
 					}
 				}
 			}
 		};
 		if(!reconnecting) {
 			reconnecting = true;
-			t.start();
+			reconnectElf.start();
 		}
 	}
 	
@@ -397,5 +399,16 @@ public class Subserver {
 		// TODO
 		Main.logger.log("New Room synched: " + room.getRoomName());
 		rooms.putIfAbsent(room, rs);
+	}
+
+	public void end() {
+		elf.interrupt();
+		helloelf.interrupt();
+		try {
+			elf.join();
+			helloelf.join();
+		}
+		catch(InterruptedException e) {}
+		
 	}
 }

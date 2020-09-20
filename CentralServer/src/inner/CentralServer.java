@@ -77,8 +77,12 @@ public class CentralServer {
 				}
 			}
 		}
-		if(subs.size() == 0)
+		if(subs.size() == 0) {
 			ss.setRegistered();
+			for(User u : users.getList()) {
+				ss.addUser(u);
+			}
+		}
 		subs.add(ss);
 		Main.logger.log("Subserver " + ss.toString() + " added.");
 	}
@@ -399,6 +403,16 @@ public class CentralServer {
 				return;
 			}
 		}
+	}
+
+	public void end() {
+		elf.interrupt();
+		sself.interrupt();
+		try {
+			elf.join();
+			sself.join();
+		}
+		catch(InterruptedException e) {}
 	}
 	
 

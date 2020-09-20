@@ -22,7 +22,7 @@ public class ClientElf extends Thread {
 					ArrayList<Room> newRooms = Main.ssrmi.getRooms();
 					for(Room r : newRooms) {
 						if(!Main.rooms.contains(r) 
-							&& (r.getBuddies().contains(Main.currentUser)
+							&& ((!r.isPrivate())?r.getBuddies().contains(Main.currentUser):false
 									|| r.getAdmin().equals(Main.currentUser))) {
 							Main.rooms.add(r);
 							Platform.runLater(new Runnable() {

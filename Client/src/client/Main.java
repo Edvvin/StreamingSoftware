@@ -237,8 +237,7 @@ public class Main extends Application {
 				File movie = fc.showOpenDialog(primaryStage);
 				if(movie != null) {
 					while(true) {
-						try{
-							FileInputStream in = new FileInputStream(movie);
+						try(FileInputStream in = new FileInputStream(movie)){
 							int ind = 0;
 							Chunk c = new Chunk(ind);
 							int mylen = in.read(c.getBytes());
@@ -640,7 +639,8 @@ public class Main extends Application {
 		controls.getChildren().addAll(back, rewind, play, pause, fastForward, currentTimeLabel);
 		
 		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
-		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		Media myMedia = new Media(moviePath.toUri().toString());
+		//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
 		currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
 		playerView = new MediaView(player);
@@ -726,7 +726,8 @@ public class Main extends Application {
 		Label currentTimeLabel = new Label();
 		controls.getChildren().addAll(back, currentTimeLabel);
 		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
-		Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+		Media myMedia = new Media(moviePath.toUri().toString());
+		//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
 		player = new MediaPlayer(myMedia);
 		currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
 		playerView = new MediaView(player);
@@ -772,6 +773,14 @@ public class Main extends Application {
 				if(reply.equals("FAILED")) {
 					if(showAlert)
 						deadCS();
+					else {
+						Platform.runLater(new Runnable() {
+							@Override
+							public void run() {
+								deadCS();
+							}
+						});
+					}
 					return false;
 				}
 				try {
@@ -792,6 +801,14 @@ public class Main extends Application {
 		catch(RemoteException e) {
 			if(showAlert)
 				deadCS();
+			else {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						deadCS();
+					}
+				});
+			}
 			return false;
 		}
 	}
@@ -800,6 +817,10 @@ public class Main extends Application {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setHeaderText("Servers Unavailable");
 		alert.show();
+		currentUser = null;
+		notiStage.close();
+		elf.interrupt();
+		notiStage = null;
 		primaryStage.setScene(createLogRegScene());
 	}
 	
