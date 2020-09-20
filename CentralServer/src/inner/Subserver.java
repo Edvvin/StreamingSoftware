@@ -22,15 +22,15 @@ public class Subserver {
 		this.lastUpdate = System.currentTimeMillis();
 	}
 	
-	public synchronized void addUser(User user) {
+	public void addUser(User user) {
 		users.add(user);
 	}
 	
-	public synchronized int getNumOfUsers() {
+	public int getNumOfUsers() {
 		return users.size();
 	}
 	
-	public synchronized boolean hasUser(User u) {
+	public boolean hasUser(User u) {
 		for(User user : users) {
 			if(user.getUsername().equals(u.getUsername())) {
 				return true;
@@ -43,17 +43,17 @@ public class Subserver {
 		return ss;
 	}
 	
-	public synchronized ArrayList<User> strip(){
+	public ArrayList<User> strip(){
 		ArrayList<User> tempUsers = users;
 		users = new ArrayList<User>();
 		return tempUsers;
 	}
 	
-	public synchronized boolean isRegistered() {
+	public boolean isRegistered() {
 		return isRegistered;
 	}
 	
-	public synchronized void setRegistered() {
+	public void setRegistered() {
 		isRegistered = true;
 	}
 

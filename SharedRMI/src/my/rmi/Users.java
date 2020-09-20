@@ -10,7 +10,7 @@ public class Users implements Serializable, Cloneable{
 		users = new ArrayList<>();
 	}
 
-	public synchronized boolean checkLogin(String user, String pass) {
+	public boolean checkLogin(String user, String pass) {
 		for(User u : users) {
 			if(u.getUsername().equals(user))
 				return u.check(pass);
@@ -18,7 +18,7 @@ public class Users implements Serializable, Cloneable{
 		return false;
 	}
 	
-	public synchronized void addUser(String user, String pass) {
+	public void addUser(String user, String pass) {
 		users.add(new User(user, pass));
 	}
 	
