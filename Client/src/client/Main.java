@@ -22,6 +22,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
+import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.media.MediaPlayer.Status;
@@ -643,42 +644,56 @@ public class Main extends Application {
 		controls.getChildren().addAll(back, rewind, play, pause, fastForward, currentTimeLabel);
 		
 		Path moviePath = Path.of("TempMovies", currentRoom.getMovie());
-		Media myMedia = new Media(moviePath.toUri().toString());
-		//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
-		player = new MediaPlayer(myMedia);
-		currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
-		playerView = new MediaView(player);
-		DoubleProperty mvw = playerView.fitWidthProperty();
-		DoubleProperty mvh = playerView.fitHeightProperty();
-		mvw.bind(Bindings.selectDouble(playerView.sceneProperty(), "width"));
-		mvh.bind(Bindings.selectDouble(playerView.sceneProperty(), "height"));
-		playerView.setPreserveRatio(true);
-		border.setCenter(playerView);
-		border.setBottom(controls);
-		while(true) {
-			try {
-				RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
-				player.setOnReady(new Runnable() {
-					@Override
-					public void run() {
-						player.seek(Duration.millis(rs.getTime()));
-						if(rs.getState() == RoomState.State.PAUSED) {
-							player.pause();
+		Media myMedia;
+		try {
+			myMedia = new Media(moviePath.toUri().toString());
+			//Media myMedia = new Media("file:///" + moviePath.toAbsolutePath().toString().replace('\\', '/'));
+			player = new MediaPlayer(myMedia);
+			currentTimeLabel.textProperty().bind(player.currentTimeProperty().asString());
+			playerView = new MediaView(player);
+			DoubleProperty mvw = playerView.fitWidthProperty();
+			DoubleProperty mvh = playerView.fitHeightProperty();
+			mvw.bind(Bindings.selectDouble(playerView.sceneProperty(), "width"));
+			mvh.bind(Bindings.selectDouble(playerView.sceneProperty(), "height"));
+			playerView.setPreserveRatio(true);
+			border.setCenter(playerView);
+			border.setBottom(controls);
+			while(true) {
+				try {
+					RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, currentUser, true);
+					player.setOnReady(new Runnable() {
+						@Override
+						public void run() {
+							player.seek(Duration.millis(rs.getTime()));
+							if(rs.getState() == RoomState.State.PAUSED) {
+								player.pause();
+							}
+							else {
+								player.play();
+							}
 						}
-						else {
-							player.play();
-						}
-					}
-					
-				});
-				break;
-			} catch (RemoteException e) {
-				if(!complain(true)) {
+						
+					});
 					break;
+				} catch (RemoteException e) {
+					if(!complain(true)) {
+						break;
+					}
 				}
 			}
+			t.start();
 		}
-		t.start();
+		catch(MediaException e) {
+			ArrayList<String> movies;
+			Users users;
+			try {
+				movies = csrmi.getRegisteredMoives();
+				users = csrmi.getUsers();
+				return createRoomCreateScene(movies, users);
+			} catch (RemoteException e1) {
+				deadCS();
+			}
+		}
 		return new Scene(border, 800, 600);
 	}
 
