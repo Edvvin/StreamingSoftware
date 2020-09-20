@@ -283,9 +283,13 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				// LOGOUT HANDLE
+				elf.interrupt();
+				try {
+					elf.join();
+				} catch (InterruptedException er) {
+				}
 				currentUser = null;
 				notiStage.close();
-				elf.interrupt();
 				notiStage = null;
 				primaryStage.setScene(createLogRegScene());
 			}
@@ -817,9 +821,13 @@ public class Main extends Application {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setHeaderText("Servers Unavailable");
 		alert.show();
+		elf.interrupt();
+		try {
+			elf.join();
+		} catch (InterruptedException e) {
+		}
 		currentUser = null;
 		notiStage.close();
-		elf.interrupt();
 		notiStage = null;
 		primaryStage.setScene(createLogRegScene());
 	}
@@ -830,9 +838,12 @@ public class Main extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent e) {
+				elf.interrupt();
+				try {
+					elf.join();
+				} catch (InterruptedException e1) {}
 				if(notiStage != null) {
 					notiStage.close();
-					elf.interrupt();
 				}
 			}
 		});
