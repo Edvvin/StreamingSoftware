@@ -35,7 +35,8 @@ public class SubServerGUI extends JFrame {
 		button.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Main.ss.end();
+				if(Main.ss != null)
+					Main.ss.end();
 				dispose();
 				System.exit(0);
 			}
@@ -45,7 +46,8 @@ public class SubServerGUI extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				Main.ss.end();
+				if(Main.ss != null)
+					Main.ss.end();
 				dispose();
 				System.exit(0);
 			}

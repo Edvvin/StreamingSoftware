@@ -183,12 +183,8 @@ public class Subserver {
 			rooms = sss.getRooms();
 		} catch (RemoteException | NotBoundException e) {
 			Main.logger.log("Failed to connect");
-			e.printStackTrace();//TODO RETRY
-			System.out.println(e.getMessage());
 		} catch (UnknownHostException e) {
 			Main.logger.log("Failed to connect.");
-			e.printStackTrace();
-			System.out.println(e.getMessage());
 		}
 
 	}

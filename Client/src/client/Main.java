@@ -763,7 +763,7 @@ public class Main extends Application {
 		return new Scene(border, 800, 600);
 	}
 	
-	public static synchronized boolean complain(boolean showAlert) {
+	public static boolean complain(boolean showAlert) {
 		ArrayList<String> tried = new ArrayList<>();
 		if(currentSS != null)
 			tried.add(currentSS);

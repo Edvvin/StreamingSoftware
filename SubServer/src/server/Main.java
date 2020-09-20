@@ -86,9 +86,12 @@ public class Main {
 			ss.wakeElf();
 			ss.helloelf.start();
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			Main.logger.log("Failed to connect");
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		catch(NumberFormatException e) {
+			Main.logger.log("bad port number");
 		}
 
 	}
