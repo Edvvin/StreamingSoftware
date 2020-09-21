@@ -193,13 +193,13 @@ public class Subserver {
 		 reconnectElf = new Thread() {
 			@Override
 			public void run() {
-				synchronized(server.Main.ss) {
-					//TODO ako treba da se doda nesto za notificationz
-					//TODO da se pobrines za onaj thread HelloElf
-					try {
-						while(!interrupted()) {
-							Registry regCS;
-							try {
+				//TODO ako treba da se doda nesto za notificationz
+				//TODO da se pobrines za onaj thread HelloElf
+				try {
+					while(!interrupted()) {
+						Registry regCS;
+						try {
+							synchronized(Main.ss) {
 								regCS = LocateRegistry.getRegistry(cshost, csport);
 								csrmi = (CSRemote) regCS.lookup("/csrmi");
 								String temp = InetAddress.getLocalHost().getHostAddress();
@@ -216,20 +216,20 @@ public class Subserver {
 								}
 								server.Main.ss.elf.newMovie();
 								break;
-							} catch (RemoteException | NotBoundException e) {
-								try {
-									Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
-									Main.logger.log("Trying to reconnect");
-								} catch (InterruptedException e1) {
-								}
-							} catch (UnknownHostException e) {
+							}
+						} catch (RemoteException | NotBoundException e) {
+							try {
 								Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
 								Main.logger.log("Trying to reconnect");
+							} catch (InterruptedException e1) {
 							}
+						} catch (UnknownHostException e) {
+							Thread.sleep(Consts.RECONNECT_SLEEP_TIME);
+							Main.logger.log("Trying to reconnect");
 						}
 					}
-					catch (InterruptedException e1) {
-					}
+				}
+				catch (InterruptedException e1) {
 				}
 			}
 		};
@@ -352,7 +352,7 @@ public class Subserver {
 		}
 	}
 
-	public synchronized RoomState getRoomState(Room room, String user, boolean force) {
+	public synchronized RoomState getRoomState(Room room, String user, boolean force) throws CSNotAvailException{
 		boolean recieved = false;
 		if(!user.equals(room.getAdmin())) {
 			recieved = getRecieved(room, user);
@@ -367,7 +367,9 @@ public class Subserver {
 		}
 		while(recieved) {
 			try {
-				wait();
+				wait(4000);
+				if(reconnecting)
+					throw new CSNotAvailException();
 			} catch (InterruptedException e) {
 				//TODO sta ako se zaglavi a klijent ugasi
 				e.printStackTrace();

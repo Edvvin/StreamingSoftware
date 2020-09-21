@@ -43,7 +43,8 @@ public class CentralServerGUI extends JFrame {
 		button.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Main.cs.end();
+				if(Main.cs != null)
+					Main.cs.end();
 				dispose();
 				System.exit(0);
 			}
@@ -53,7 +54,8 @@ public class CentralServerGUI extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				Main.cs.end();
+				if(Main.cs != null)
+					Main.cs.end();
 				dispose();
 				System.exit(0);
 			}

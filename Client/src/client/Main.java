@@ -528,6 +528,8 @@ public class Main extends Application {
 						else
 							state = RoomState.State.PAUSED;
 						try {
+							if(Main.ssrmi == null)
+								break;
 							Main.ssrmi.setRoomState(currentRoom, player.getCurrentTime().toMillis(), state);
 						} catch (RemoteException | CSNotAvailException | NotSycnhedException e) {
 							if(!complain(false))
@@ -677,7 +679,7 @@ public class Main extends Application {
 						
 					});
 					break;
-				} catch (RemoteException e) {
+				} catch (RemoteException | CSNotAvailException e) {
 					if(!complain(true)) {
 						break;
 					}
@@ -710,6 +712,8 @@ public class Main extends Application {
 						Thread.sleep(Consts.GUEST_ROOM_UPDATE);
 						try {
 							RoomState rs = Main.ssrmi.getRoomState(Main.currentRoom, Main.currentUser, false);
+							if(player == null)
+								break;
 							if(Math.abs(player.getCurrentTime().toMillis() - rs.getTime()) < 1500.0 
 									&& ((rs.getState() == RoomState.State.PAUSED 
 										&& player.getStatus() != MediaPlayer.Status.PLAYING)
@@ -723,7 +727,7 @@ public class Main extends Application {
 							else {
 								player.play();
 							}
-						} catch (RemoteException e) {
+						} catch (RemoteException | CSNotAvailException e) {
 							if(!complain(false))
 								interrupt();
 						}
@@ -776,7 +780,7 @@ public class Main extends Application {
 				});
 				t.start();
 				break;
-			} catch (RemoteException e) {
+			} catch (RemoteException | CSNotAvailException e) {
 				if(!complain(true))
 					break;
 			}

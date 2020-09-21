@@ -69,7 +69,7 @@ public class SubServerRMI implements SSRemote {
 	}
 
 	@Override
-	public RoomState getRoomState(Room room, String user, boolean force) throws RemoteException {
+	public RoomState getRoomState(Room room, String user, boolean force) throws RemoteException, CSNotAvailException {
 		return Main.ss.getRoomState(room, user, force);
 	}
 
