@@ -43,8 +43,7 @@ public class Subserver {
 		elf = new MovieElf();
 		helloelf = new HelloElf();
 		Path indexPath = Path.of(dir, "index.txt");
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(indexPath.toFile()));
+		try(FileReader fr = new FileReader(indexPath.toFile());BufferedReader br = new BufferedReader(fr);) {
 			Iterator<String> lines = br.lines().iterator();
 			lines.forEachRemaining(line -> {
 					String parts[] = line.split(":");
