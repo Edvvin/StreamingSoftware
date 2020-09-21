@@ -133,14 +133,25 @@ public class CentralServer {
 	public synchronized void removeSubserver(Subserver ss) {
 		ArrayList<User> users = ss.strip();
 		subs.remove(ss);
+		ArrayList<String> toRem = new ArrayList<>();
 		chunks.forEach((key, value)->{
 			for(Subserver s : value) {
 				if(ss.toString().equals(s.toString())) {
 					value.remove(s);
+					if(value.size() == 0) {
+						String parts[] = key.split(":");
+						if(!toRem.contains(parts[0])) {
+							toRem.add(parts[0]);
+						}
+					}
 					break;
 				}
 			}
 		});
+		for(String rem : toRem) {
+			chunks.remove(rem);
+			fileSizes.remove(rem);
+		}
 		//TODO fileSizes possibly remove from here
 		if(subs.size() == 1) {
 			subs.get(0).setRegistered();
@@ -291,7 +302,7 @@ public class CentralServer {
 				if(ss.isRegistered())
 					numReg2++;
 			}
-			if(numReg2 == finalNumReg) {
+			if(numReg2 >= finalNumReg) {
 				String[] parts = key.split(":");
 				partCnt.putIfAbsent(parts[0],  0L);
 				partCnt.put(parts[0], partCnt.get(parts[0]) + 1);
