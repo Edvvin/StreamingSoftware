@@ -51,7 +51,7 @@ public class Main {
 		
 		try {
 			//single object
-			ServerSocket ss = new ServerSocket(0);
+			ServerSocket ss = new ServerSocket(58278);
 			int port = ss.getLocalPort();
 			ss.close();
 			myRMI = new CentralServerRMI();

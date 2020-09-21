@@ -39,7 +39,7 @@ public class CentralServer {
 		User u = new User(username, password);
 		Main.logger.log("User: " + username + " attempting to log in");
 		if(!getUsers().exists(u)) {
-			Main.logger.log("User: " + username + " already exists");
+			Main.logger.log("User: " + username + " does not exists");
 			return "INVALID";
 		}
 		Subserver ss = routeUser(u);

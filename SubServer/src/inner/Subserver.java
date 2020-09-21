@@ -210,8 +210,11 @@ public class Subserver {
 								}
 								users = sss.getUsers();
 								rooms = sss.getRooms();
+								Main.ss.reconnecting = false;
+								synchronized(Main.ss.helloelf) {
+									Main.ss.helloelf.notify();
+								}
 								server.Main.ss.elf.newMovie();
-								server.Main.ss.helloelf.notify();
 								break;
 							} catch (RemoteException | NotBoundException e) {
 								try {
