@@ -37,7 +37,9 @@ public class MovieElf extends Thread {
 					boolean reply = Main.ss.carryOut(o);
 					if(reply) {
 						success.add(o);
-						Main.ss.movies.get(o.getMovie()).addChunk(o.getIndex());;
+						if(!Main.ss.movies.containsKey(o.getMovie()))
+							Main.ss.movies.put(o.getMovie(), new Movie(o.getMovie(), o.getFileSize()));
+						Main.ss.movies.get(o.getMovie()).addChunk(o.getIndex());
 					}
 				}
 				try {
