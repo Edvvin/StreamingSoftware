@@ -35,8 +35,10 @@ public class MovieElf extends Thread {
 				ArrayList<Order> success = new ArrayList<>();
 				for(Order o: orders) {
 					boolean reply = Main.ss.carryOut(o);
-					if(reply)
+					if(reply) {
 						success.add(o);
+						Main.ss.movies.get(o.getMovie()).addChunk(o.getIndex());;
+					}
 				}
 				try {
 					Main.ss.csrmi.registerOrders(Main.ss.port, success);

@@ -299,7 +299,7 @@ public class Subserver {
 	}
 
 	public Chunk download(String name, int chunkIndex) {
-		if(!movies.containsKey(name))
+		if(!movies.containsKey(name) || !movies.get(name).isWhole())
 			return null;
 		Path filePath = Path.of(dir, name);
 		Chunk c = null;
